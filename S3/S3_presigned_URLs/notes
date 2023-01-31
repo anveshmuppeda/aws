@@ -1,0 +1,16 @@
+
+S3 Pre signed URLs
+Allows users to view objects inside private bucket using generated s3 URLS by below commands.
+
+
+To generate pre signed URLS.
+
+#do not forget to region parametes! (make sure it's the proper region you're choosing)
+aws s3 presign s3://mybucket/obj --region my-region
+
+#add a custom expiration time
+aws s3 presign s3://mybucket/obj --region my-region --expires-in 300
+
+#if your getting issues
+#set the proper signature version in order not to get issues when gernarating URLs for rncrypted files
+aws configure set default.s3.signature_version s3v4

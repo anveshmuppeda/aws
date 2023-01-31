@@ -1,0 +1,12 @@
+#install httpd(Linux 2 version)
+yum update -y
+yum install -y httpd.x86_64
+systemctl start httpd.service
+systemctl enable https.service
+echo "hello world from $(hostname -f)" > /var/www/html/index.html
+
+
+#install httpd(Ubuntu version)
+sudo apt update
+sudo apt install apache2
+sudo echo "hello world from $(hostname -f)" > /var/www/html/index.html

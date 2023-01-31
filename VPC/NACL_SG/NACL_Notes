@@ -1,0 +1,7 @@
+NACL(Network Access Control List)
+NACL are like a firewall which ontrol traffic from and to subnetes.
+One NACL per subnet.
+Newly created NACLs will deny everything.
+
+Default NACL:
+If default NACL associate with any subnet, then it will allow everything in and everything out.

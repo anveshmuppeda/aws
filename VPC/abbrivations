@@ -1,0 +1,14 @@
+==========VPC==========
+IANA
+Internet Assigned Numbers Authority
+LAN
+Local Area N/W
+
+NAT
+n/w address translation.
+
+NACL
+(Network Access Control List)
+
+Transit Gateway:
+ECMP: Equal-cost multi-path routing

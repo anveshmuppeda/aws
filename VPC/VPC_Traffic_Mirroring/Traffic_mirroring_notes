@@ -1,0 +1,8 @@
+VPC Traffic Mirroring
+Allows you to cpature and inspect n/w traffic in your VPC
+Route the traffic to security appliances that you manage
+Capture the traffic
+From (source) - ENIs
+To (Targets) - an ENI or a N/w Load Balancer
+Cpature all packets or capture the packets of you interest(optionally, trnacte packets)
+Source and target can be in the same VPC or different VPCs(VPC Peering)

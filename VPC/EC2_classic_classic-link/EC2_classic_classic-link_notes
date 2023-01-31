@@ -1,0 +1,8 @@
+EC2-Classic & AWS Classic Link
+EC2-Classic: Instances run in a single n/w shared with other customers in terms of networking.
+Amazon VPC: Your instances run logically isolated to your AWS account.
+
+If you want link b/w your VPC and classic instances
+you need to create a classic link
+for this you must associate a Security group.
+and enable your instances to communicate privately from EC2 classic to your VPC using ipv4 private address.

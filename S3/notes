@@ -1,0 +1,12 @@
+Topics;
+S3 Pre-Signed URLs
+Athena :Serverless data analysis service
+
+
+=======Q&A========
+
+You are looking to provide temporary URLs to a growing list of federated users to allow them to perform a file upload on your S3 bucket to a specific location. What should you use?
+S3 Pre-Signed URLs are temporary URLs that you generate to grant time-limited access to some actions in your S3 bucket.
+
+You are looking to get recommendations for S3 Lifecycle Rules. How can you analyze the optimal number of days to move objects between different storage tiers?
+S3 analytics

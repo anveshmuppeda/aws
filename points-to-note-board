@@ -1,0 +1,47 @@
+https://notepad.pw/aws-personal
+https://git-scm.com/downloads
+https://notepad.pw/aws-personal
+ec2-user@3.111.105.20: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
+https://superuser.com/questions/609530/permission-denied-publickey-gssapi-with-mic-when-cloning-git-repo
+
+
+Load balancers:
+CLB: classic load balancer
+ALB: application load balancer
+NLB: n/w load balancer
+GWLB:  g/w load balancer
+
+SSL: Secure Sockets Layer
+TLS: Transport Layer Security
+CA: Certificate Authorities
+ACM: AWS Certificate Manager
+SNI: Server Name Indication
+
+Route53
+FQDN: Fully Qualified Domain Name.
+NS: nameserver
+TTL: Time To Live
+CORS:
+Cross-Origin Resource Sharing
+
+S3:
+KMS: Key Management service
+ACL: Access Control List
+types of encryption on S3
+1. SSE-S3: encrypt S3 objects using keys handles & managed by AWS
+2. SSE-KMS: leverage AWS Key Management Service to manage encryption keys
+3. SSE-C: when you want to manage your own encryption keys
+4. Client Side Encryption
+
+CRR: cross region replication
+SRR: Same region replication
+
+AWS instance metadata
+To fetch the instance details from server we can use below command.
+curl http://169.254.169.254/latest/meta-data/
+
+S3 MFA DELETE:
+If we enable MFA DELETE, we can't delete the any files inside bucket even if it versioning.
+
+S3 Pre signed URLs
+Allows users to view objects inside private bucket using generated s3 URLS by below commands.

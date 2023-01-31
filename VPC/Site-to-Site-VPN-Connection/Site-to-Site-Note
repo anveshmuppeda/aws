@@ -1,0 +1,13 @@
+Site-to-Site VPN connections.
+
+Customer Gateway Device(on premises)=CGW
+Virtual Private Gateway(AWS)=VPG
+
+What IP address to use in Site-to-Site VPN connections?
+If your CGW is on public internet then we can use Public IP of CGW.
+If your CGW is behind NAT device(inside private connection), here we can use NAT Public IP.
+Important step: Enable Route Propagation for the virtual Private Gateway is the route table that is associated with your subnets.
+
+If you need to ping your EC2 instances from on-premises, make sure you add the ICMP protocol on the inbound of your SG.
+
+1VPN connection = 2 tunnels(Input and output).

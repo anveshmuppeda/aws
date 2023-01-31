@@ -1,0 +1,8 @@
+Clarification on ENI
+It's possible that for some of you, ENIs are not clear just yet.
+
+That's okay, they are an advanced concept in AWS and one that can take time to master.
+
+If you'd like to learn more on ENI, I found that many students were helped by reading this blog:  https://aws.amazon.com/blogs/aws/new-elastic-network-interfaces-in-the-virtual-private-cloud/
+
+I hope this will help you. If you still don't understand it, no worries, this is not a blocker for the course. Keep on going, and come back to this concept towards the end.

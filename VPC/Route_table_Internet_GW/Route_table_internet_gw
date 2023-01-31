@@ -1,0 +1,16 @@
+Internet gateway:
+Internet gateway is act like a mediator b/w the internet and VPC.
+It will allow the VPC to connect to the outside internet.
+From here only all the traffic flowed. and each VPC have a associated internet GW.
+
+Route Table:
+From internet g/w and VPC the route table is the mediator.
+From internet the traffic routed directly to route tables, route tables are associated to internet gateway if it is public.
+In route table we specify the subnets,
+if the route table is public then we linked the internet gateway to the route table then associated to respective public subnets.
+If route table is private, then we don't link the internet gateway here, we just associate the respective private subnets.
+
+
+NAT gateway:
+NAT gateway is specific to AG, and we need to maintain individual NAT GW for individual AG's to overcome failover.
+NAT Gateway directly server the traffic to the internet gateway.

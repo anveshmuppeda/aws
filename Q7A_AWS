@@ -1,0 +1,38 @@
+
+1. Can we setup read replicas as multi AZ for disaster recovery?
+Yes, we can RDS setup read replicas in multi AZ.
+
+2. very high performance h/w attach volume for your ec2 instances
+Local instance store
+
+EFS:
+If you have very small file system but you need very high through put(ex: 1 GiB/s for 1TB storage)
+then you need to move into provision through put mode in EFS
+
+EFS:
+storage tiers (life cycle management feature - move file after N days)
+to store files
+If we don't access file for N(whatever we defined) number of days then the file move into EFS infrequent access storage access which saves cost.
+
+Remember:
+EFS vs EBS vs instance store
+
+S3:
+When we need to enable CORS headers and where?
+If a client does a cross origin request on our s3 bucket, we need to enable the correct CORS headers.
+
+Any time you see filtering of data server side in s3 to get less data using SQL.
+then think about get S3 select & Glacier Select
+
+AWS SDK:
+If you don't specify or configure a default region on AWS SDK, then which region it will choose?
+It will be choosen us-east-1 by default.
+
+
+AWS PrivateLink(VPC Endpoint Services)
+If you want to secure and scalable way to expose a service to 1000s of VPC(own or other accounts) which we can use?
+ans: AWS PrivateLink
+
+Transit Gateway:
+Which AWS service supports IP MULTICAST?
+Transit Gateway.

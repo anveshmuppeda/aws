@@ -1,0 +1,5 @@
+Elastic IPs
+When you stop and then start an EC2 instance, it can change it's public IP.
+If you need to have a fixed public IP for your instance, you need an Elastic IP.
+An Elastic IP is a public IPV4 IP you own as long as you don't delete it.
+You can attach it to one instance at a time.

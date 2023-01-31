@@ -1,0 +1,3 @@
+Amazon Athena
+Serverless query service to perform Analytics against S3 objects.
+Use standard SQL Language to query the files.

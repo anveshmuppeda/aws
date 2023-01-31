@@ -1,0 +1,14 @@
+Transit Gateway:
+For having transitive peering b/w thousands of VPC and on-premises, hub-and-spoke(star) connection.
+Regional resources, can work cross-region
+Share cross-account using Resource Access Manager(RAM)
+You can peer Transit Gateways across regions
+Route tables: limit which VPC can talk with other VPC.
+Works with Direct connect Gateways, VPN connections
+
+Supports IP MULTICAST(not supported by any other AWS Service).
+
+Transit gateway: Site to Site VPN ECMP
+ECMP: Equal-cost multi-path routing
+Use Case: Create multiple Site to Site VPN connections to increase the bandwidth of your connection to AWS.
+1VPN connection = 2 tunnels(Input and output).

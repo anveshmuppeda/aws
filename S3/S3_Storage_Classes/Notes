@@ -1,0 +1,29 @@
+S3 Storage classes:
+1. S3 standard General Purpose
+High durability, no loss of data
+Use cases: Big DATA analytics, monile & gaming apps.
+
+2. S3 Standard - Infrequent Access (IA)
+it is for less frequently accessed data, low cost.
+Use cases: As a data store for disaster recovery, backups.
+
+3. S3 One Zone - Infrequent Access (IA)
+Same as IA but data is stored in a single AZ.
+Use cases: secondary backups, store data which can recreate.
+
+4. S3 Intelligent Tiering
+Automatically moves objects b/w two access tires(S3 IA and S3 general purpose) based on changing patterns.
+
+5. Amazon Glacier.
+Low cost, data retained for longer term.
+Each item in Glacier is called archive, archives stored in vaults not in buckets.
+3-retrival options:
+expedite(1-5 min)
+standard(3to5 hours)
+bulk(5-12hours)
+Min storage duration 90 days.
+
+6. Amazon Glacier  Deep Archive- for long term storage- cheaper:
+standard(12 hours)
+bulk(48 hours)
+Min storage duration 180 days

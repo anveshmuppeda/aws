@@ -1,0 +1,5 @@
+VPC Peering:
+Privately connect two VPCs using AWS n/w.
+Make them behave as if they were in the same n/w.
+must not have overlapping CIRDs.
+You can create VPC Peering connection b/w VPCs in different AWS accounts/regions.
