@@ -1,0 +1,2 @@
+# AWS
+AWS basic notes
