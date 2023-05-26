@@ -2,6 +2,6 @@ Resources:
   firstec2:
     Type: AWS::EC2::Instance
     Properties:
-      Region: us-east-2
+      AvailabilityZone: us-east-2
       InstanceType: t2.micro
       ImageId: ami-0a695f0d95cefc163
