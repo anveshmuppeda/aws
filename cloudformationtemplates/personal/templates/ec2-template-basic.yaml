@@ -1,0 +1,8 @@
+Resources:
+  firstec2:
+    Type: AWS::EC2::Instance
+    Properties:
+      Description: Launching first instance frpm cloudformation
+      Region: us-east-2
+      InstanceType: t2.micro
+      ImageId: ami-0a695f0d95cefc163
