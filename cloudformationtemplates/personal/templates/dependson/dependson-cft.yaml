@@ -14,8 +14,12 @@ Parameters:
     ConstraintDescription: Choose a Valid EC2 instance Type from the available options.
 
 Resources:
-  EC2Demo:
+  DemoInstance:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: !Ref DemoInstanceType
       ImageId: !Ref ImageId
+      InstanceType: !Ref DemoInstanceType
+    #Here depends on section starts
+    DependsOn: DemoBucket
+  DemoBucket:
+    Type: AWS::S3::Bucket
