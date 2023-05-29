@@ -1,0 +1,16 @@
+Parameters:
+  DemoInstanceType:
+    Description: EC2 Instance Type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+    ConstraintDescription: Choose a Vlid EC2 instance Type from the available options.
+
+Resources:
+  EC2Demo:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref DemoInstanceType
+      ImageId: ami-0a695f0d95cefc163

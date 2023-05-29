@@ -1,0 +1,25 @@
+Parameters:
+  DemoInstanceType:
+    Description: EC2 Instance Type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+    ConstraintDescription: Choose a Vlid EC2 instance Type from the available options.
+
+  SGDescription:
+    Description: This is SG group descrioption
+    Type: String
+
+Resources:
+  Demo-server:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref DemoInstanceType
+      ImageId: ami-0a695f0d95cefc163
+  demo-server-sg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Ref SGDescription
+

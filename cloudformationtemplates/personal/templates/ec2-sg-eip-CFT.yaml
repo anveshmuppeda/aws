@@ -1,13 +1,13 @@
 Resources:
   #creating an ec2 instance
-  DemoInstace:
+  DemoInstance:
     Type: AWS::EC2::Instance
     Properties:
-      AvailabilityZone: us-east2-2a
+      AvailabilityZone: us-east-2a
       ImageId: ami-0a695f0d95cefc163
       InstanceType: t2.micro
       #referencing the security group which is created below
-      Securitygroups:
+      SecurityGroups:
         - !Ref DemoInstanceSecurityGrtoup
       UserData:
         Fn::Base64: !Sub |
@@ -16,6 +16,7 @@ Resources:
           yum install httpd -y
           systemctl enable httpd.service
           systemctl start httpd.service
+      #IamInstanceProfile: S3FullAccessEC2
   
   # Assigining EIP to the server
   DemoInstanceEIP:
@@ -25,7 +26,7 @@ Resources:
 
   #Creating Security group with soem inbound rules like 22, 80, and 443 ports
   DemoInstanceSecurityGrtoup:
-    Type: AWS::EC2::SecurityuGroup
+    Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable SSH, HTTP, and HTTPs
       SecurityGroupIngress:
