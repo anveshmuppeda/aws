@@ -4,7 +4,9 @@ Parameters:
     Type: String
     AllowedValues: [test, prod]
     ConstraintDescription: must be test or prod
-  Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+
+  AMIId: 
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
     ConstraintDescription: Choose a Valid EC2 instance Type from the available options.
 
