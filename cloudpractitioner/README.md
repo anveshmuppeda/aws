@@ -5,8 +5,10 @@ Which Global Infrastructure identity is composed of one or more discrete data ce
 
 ### Answer: Avaialbility Zone
 
-### The Shared Responsibility Model defines who is responsible for what in the AWS Cloud.
-
+### Question 
+The Shared Responsibility Model defines who is responsible for what in the AWS Cloud.
+### Answer: 1 or 3 yers
+How long can you reserve an EC2 Reserved Instance?
 
 
 ## Note
