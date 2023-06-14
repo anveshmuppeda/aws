@@ -28,6 +28,8 @@ provider
 5. Measured service:  
 • Usage is measured, users pay correctly for what they have used  
 
+---
+
 ## IAM 
 - **Users**: mapped to a physical user, has a password for AWS Console.  
 - **Groups**: contains users only  
@@ -39,6 +41,14 @@ provider
 - **Access Keys**: access AWS using the CLI or SDK  
 - **Audit**: IAM Credential Reports & IAM Access Advisor  
 
+### IAM Security Tools
+- IAM Credentials Report (account-level)  
+  a report that lists all your account's users and the status of their various credentials. 
+- IAM Access Advisor (user-level)  
+  Access advisor shows the service permissions granted to a user and when those services were last accessed. 
+  You can use this information to revise your policies
+ --- 
+ 
 ## EC2 Section 
 - **EC2 Instance**:  AMI (OS) + Instance Size (CPU + RAM) + Storage + security groups + EC2 User Data  
 - **Security Groups**: Firewall attached to the EC2 instance  
@@ -47,12 +57,6 @@ provider
 - **EC2 Instance Role**: link to IAM roles  
 - **Purchasing Options**:  On-Demand, Spot, Reserved (Standard + Convertible + Scheduled), Dedicated Host, Dedicated Instance.  
 
-### IAM Security Tools
-- IAM Credentials Report (account-level)  
-  a report that lists all your account's users and the status of their various credentials. 
-- IAM Access Advisor (user-level)  
-  Access advisor shows the service permissions granted to a user and when those services were last accessed. 
-  You can use this information to revise your policies
 
 ### EC2 Instances Purchasing Options
 - On-Demand Instances – short workload, predictable pricing, pay by second  
