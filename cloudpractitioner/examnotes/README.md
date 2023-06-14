@@ -74,3 +74,14 @@ provider
 - **EFS-IA**: cost-optimized storage class for infrequent accessed files  
 - **FSx for Windows**: Network File System for Windows servers  
 - **FSx for Lustre**: High Performance Computing Linux file system  
+
+## ELB & ASG  
+- High Availability vs Scalability (vertical and horizontal) vs Elasticity vs Agility in the Cloud  
+- Elastic Load Balancers (ELB)  
+  - Distribute traffic across backend EC2 instances, can be Multi-AZ
+  - Supports health checks
+  - 4 types: Classic (old), Application (HTTP – L7), Network (TCP – L4), Gateway (L3)
+- Auto Scaling Groups (ASG)  
+   - Implement Elasticity for your application, across multiple AZ  
+   - Scale EC2 instances based on the demand on your system, replace unhealthy.  
+   - Integrated with the ELB  
