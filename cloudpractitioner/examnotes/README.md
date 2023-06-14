@@ -123,3 +123,16 @@ provider
 - ECR: Private Docker Images Repository  
 - Batch: run batch jobs on AWS across managed EC2 instances  
 - Lightsail: predictable & low pricing for simple application & DB stacks  
+
+
+## Lambda Summary
+- Lambda is Serverless, Function as a Service, seamless scaling, reactive  
+- Lambda Billing:   
+  - By the time run x by the RAM provisioned   
+  - By the number of invocations   
+- Language Support: many programming languages except (arbitrary) Docker  
+- Invocation time: up to 15 minutes  
+- Use cases:  
+  - Create Thumbnails for images uploaded onto S3  
+  - Run a Serverless cron job  
+- API Gateway: expose Lambda functions as HTTP API   
