@@ -69,6 +69,7 @@ provider
 - Dedicated Instances – no other customers will share your hardware  
 - Capacity Reservations – reserve capacity in a specific AZ for any duration  
 
+--- 
 
 ## EC2 Instance Storage  
 - **EBS volumes**:  
