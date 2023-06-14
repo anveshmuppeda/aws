@@ -82,6 +82,7 @@ provider
   - High performance hardware disk attached to our EC2 instance  
   - Lost if our instance is stopped / terminated  
 - **EFS**: network file system, can be attached to 100s of instances in a region  
+    EFS works with Linux EC2 instances in multi-AZ  
 - **EFS-IA**: cost-optimized storage class for infrequent accessed files  
 - **FSx for Windows**: Network File System for Windows servers  
 - **FSx for Lustre**: High Performance Computing Linux file system  
