@@ -113,3 +113,13 @@ provider
 - Glue: Managed ETL (Extract Transform Load) and Data Catalog service  
 - Database Migration: DMS  
 - Neptune: graph database  
+
+## Other Compute  
+- Docker: container technology to run applications  
+- ECS: run Docker containers on EC2 instances  
+- Fargate:  
+  - Run Docker containers without provisioning the infrastructure  
+  - Serverless offering (no EC2 instances)  
+- ECR: Private Docker Images Repository  
+- Batch: run batch jobs on AWS across managed EC2 instances  
+- Lightsail: predictable & low pricing for simple application & DB stacks  
