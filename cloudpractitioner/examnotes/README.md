@@ -213,6 +213,8 @@ provider
 - Cloud9: Cloud IDE (Integrated Development Environment) with collab  
 - AWS CDK: Define your cloud infrastructure using a programming language  
 
+---
+
 ## Global Applications in AWS  
 - Global DNS: Route 53  
   - Great to route users to the closest deployment with least latency  
