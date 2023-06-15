@@ -261,10 +261,14 @@ provider
   - Events (or EventBridge): react to events in AWS, or trigger a rule on a schedule  
 - CloudTrail: audit API calls made within your AWS account  
 - CloudTrail Insights: automated analysis of your CloudTrail Events  
-- X-Ray: trace requests made through your distributed applications  
+- X-Ray: trace requests made through your distributed applications 
+  - AWS X-Ray Visual analysis of our applications 
 - AWS Health Dashboard: status of all AWS services across all regions  
 - AWS Account Health Dashboard: AWS events that impact your infrastructure  
-- Amazon CodeGuru: automated code reviews and application performance recommendations.  
+- Amazon CodeGuru: automated code reviews and application performance recommendations.
+  - Provides two functionalities
+  - CodeGuru Reviewer
+  - CodeGuru Profiler  
 
 ---
 
