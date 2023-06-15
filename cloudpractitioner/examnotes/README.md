@@ -223,9 +223,9 @@ provider
   - Replicate part of your application to AWS Edge Locations – decrease latency  
   - Cache common requests – improved user experience and decreased latency  
 - S3 Transfer Acceleration  
-- Accelerate global uploads & downloads into Amazon S3   
+  - Accelerate global uploads & downloads into Amazon S3   
 - AWS Global Accelerator  
-- Improve global application availability and performance using the AWS global network   
+  - Improve global application availability and performance using the AWS global network   
 - AWS Outposts  
   - Deploy Outposts Racks in your own Data Centers to extend AWS services
 - AWS WaveLength
