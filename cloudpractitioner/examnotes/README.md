@@ -148,6 +148,8 @@ provider
 - Database Migration: DMS(Database Migration Service)  
 - Neptune: graph database  
 
+---
+
 ## Other Compute  
 - Docker: container technology to run applications  
 - ECS: run Docker containers on EC2 instances  
@@ -158,6 +160,7 @@ provider
 - Batch: run batch jobs on AWS across managed EC2 instances  
 - Lightsail: predictable & low pricing for simple application & DB stacks  
 
+---
 
 ## Lambda Summary
 - Lambda is Serverless, Function as a Service, seamless scaling, reactive  
@@ -171,6 +174,7 @@ provider
   - Run a Serverless cron job  
 - API Gateway: expose Lambda functions as HTTP API   
 
+---
 
 ## AWS Elastic Beanstalk  
 - Elastic Beanstalk is a developer centric view of deploying an application on AWS  
@@ -179,6 +183,8 @@ provider
 - We still have full control over the configuration
 - Beanstalk = Platform as a Service (PaaS)  
 - Beanstalk is free but you pay for the underlying instances  
+
+---
 
 ## Deployment 
 - CloudFormation: (AWS only)  
@@ -190,6 +196,8 @@ provider
 - CodeDeploy (hybrid): deploy & upgrade any application onto servers  
 - Systems Manager (hybrid): patch, configure and run commands at scale  
 - OpsWorks (hybrid): managed Chef and Puppet in AWS  
+
+---
 
 ## Developer Services 
 - CodeCommit: Store code in private git repository (version controlled)  
@@ -221,6 +229,7 @@ provider
   - Bring AWS resources (compute, database, storage, …) closer to your users
   - Good for latency-sensitive applications
 
+---
 
 ## Integration Section 
 - SQS:
@@ -236,6 +245,7 @@ provider
 - Kinesis: real-time data streaming, persistence and analysis  
 - Amazon MQ: managed message broker for ActiveMQ and RabbitMQ in the cloud (MQTT, AMQP.. protocols)  
 
+---
 
 ## Monitoring  
 - CloudWatch:  
@@ -249,6 +259,8 @@ provider
 - AWS Health Dashboard: status of all AWS services across all regions  
 - AWS Account Health Dashboard: AWS events that impact your infrastructure  
 - Amazon CodeGuru: automated code reviews and application performance recommendations.  
+
+---
 
 ## VPC  
 - VPC – Virtual Private Cloud 
@@ -267,6 +279,7 @@ provider
 - Direct Connect – direct private connection to AWS.  
 - Transit Gateway – Connect thousands of VPC and on-premises networks together.  
 
+---
 
 ## Shared Responsibility on AWS  
 - Shield: Automatic DDoS Protection + 24/7 support for advanced  
