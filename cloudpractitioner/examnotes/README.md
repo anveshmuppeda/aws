@@ -159,6 +159,8 @@ provider
 - ECR: Private Docker Images Repository  
 - Batch: run batch jobs on AWS across managed EC2 instances  
 - Lightsail: predictable & low pricing for simple application & DB stacks  
+  - Great for people with little cloud experience!
+  - Simpler alternative to using EC2, RDS, ELB, EBS, Route 53…
 
 ---
 
