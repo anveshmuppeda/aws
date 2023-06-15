@@ -87,6 +87,8 @@ provider
 - **FSx for Windows**: Network File System for Windows servers  
 - **FSx for Lustre**: High Performance Computing Linux file system  
 
+---
+
 ## ELB & ASG  
 - High Availability vs Scalability (vertical and horizontal) vs Elasticity vs Agility in the Cloud  
 - Elastic Load Balancers (ELB)  
@@ -101,6 +103,8 @@ provider
    - Implement Elasticity for your application, across multiple AZ  
    - Scale EC2 instances based on the demand on your system, replace unhealthy.  
    - Integrated with the ELB  
+
+---
 
 ## Amazon S3  
 - Buckets vs Objects: global unique name, tied to a region  
