@@ -92,7 +92,11 @@ provider
 - Elastic Load Balancers (ELB)  
   - Distribute traffic across backend EC2 instances, can be Multi-AZ
   - Supports health checks
-  - 4 types: Classic (old), Application (HTTP – L7), Network (TCP – L4), Gateway (L3)
+  - 4 types: 
+    1. Classic (old)
+    2. Application (HTTP – L7)
+    3. Network (TCP – L4)
+    4. Gateway (L3)
 - Auto Scaling Groups (ASG)  
    - Implement Elasticity for your application, across multiple AZ  
    - Scale EC2 instances based on the demand on your system, replace unhealthy.  
