@@ -196,7 +196,7 @@ provider
 - Platform as a Service (PaaS), limited to certain programming languages or Docker  
 - Deploy code consistently with a known architecture: ex, ALB + EC2 + RDS  
 - CodeDeploy (hybrid): deploy & upgrade any application onto servers  
-- Systems Manager (hybrid): patch, configure and run commands at scale  
+- Systems Manager (hybrid): patch, configure and run commands at scale without SSH  
 - OpsWorks (hybrid): managed Chef and Puppet in AWS  
 
 ---
@@ -206,8 +206,10 @@ provider
 - CodeBuild: Build & test code in AWS  
 - CodeDeploy: Deploy code onto servers  
 - CodePipeline: Orchestration of pipeline (from code to build to deploy)  
+  - Code => Build => Test => Provision => Deploy  
 - CodeArtifact: Store software packages / dependencies on AWS  
 - CodeStar: Unified view for allowing developers to do CICD and code  
+  - “Quick way” to get started to correctly set-up CodeCommit, CodePipeline CodeBuild, CodeDeploy, Elastic Beanstalk, EC2, etc…   
 - Cloud9: Cloud IDE (Integrated Development Environment) with collab  
 - AWS CDK: Define your cloud infrastructure using a programming language  
 
