@@ -134,15 +134,18 @@ provider
 - Differences between Multi-AZ, Read Replicas, Multi-Region  
 - In-memory Database: ElastiCache  
 - Key/Value Database: DynamoDB (serverless) & DAX (cache for DynamoDB)  
-- Warehouse - OLAP: Redshift (SQL)  
-- Hadoop Cluster: EMR  
+- Warehouse - OLAP(online analytical processing): Redshift (SQL)  
+  Redshift is based on PostgreSQL, but it’s not used for OLTP, it's OLAP. Load data once every hour, not every second
+- Hadoop Cluster: **EMR**(Elastic MapReduce) 
+  EMR helps creating Hadoop clusters (Big Data) to analyze and process vast amount of data, The clusters can be made of hundreds of EC2 instances.   
 - Athena: query data on Amazon S3 (serverless & SQL)  
+  Serverless query service to analyze data stored in Amazon S3   
 - QuickSight: dashboards on your data (serverless)  
 - DocumentDB: “Aurora for MongoDB” (JSON – NoSQL database)  
-- Amazon QLDB: Financial Transactions Ledger (immutable journal, cryptographically verifiable)  
+- Amazon QLDB(Quantum Ledger Database): Financial Transactions Ledger (immutable journal, cryptographically verifiable)  
 - Amazon Managed Blockchain: managed Hyperledger Fabric & Ethereum blockchains  
 - Glue: Managed ETL (Extract Transform Load) and Data Catalog service  
-- Database Migration: DMS  
+- Database Migration: DMS(Database Migration Service)  
 - Neptune: graph database  
 
 ## Other Compute  
