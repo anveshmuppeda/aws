@@ -356,7 +356,8 @@ provider
 
 ## Billing and Costing Tools 
 - **Compute Optimizer**: recommends resources’ configurations to reduce cost
-- **Pricing Calculator**: cost of services on AWS
+- **Pricing Calculator**: cost of services on AWS 
+    The AWS Simple Monthly Calculator is an easy-to-use online tool that enables you to estimate their architecture solution monthly cost of AWS services for your use case based on your expected usage. It is being replaced by AWS Pricing Calculator.
 - **Billing Dashboard**: high level overview + free tier dashboard
 - **Cost Allocation Tags**: tag resources to create detailed reports
 - **Cost and Usage Reports**: most comprehensive billing dataset
@@ -371,6 +372,7 @@ provider
 
 ## Trusted Advisor  
 AWS Trusted Advisor is an online tool that provides you real time guidance to help you provision your resources following AWS best practices, including performance, security, and fault tolerance, but also cost optimization and service limits.  
+
 • No need to install anything – high level AWS account assessment  
 • Analyze your AWS accounts and provides recommendation on 5 categories  
 1. Cost optimization
