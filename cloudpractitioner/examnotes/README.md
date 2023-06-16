@@ -337,3 +337,62 @@ provider
 - Textract: detect text and data in documents  
 
 ---
+
+## Account Best Practices 
+- Operate multiple accounts using Organizations
+- Use SCP (service control policies) to restrict account power
+- Easily setup multiple accounts with best-practices with AWS Control Tower
+- Use Tags & Cost Allocation Tags for easy management & billing
+- IAM guidelines: MFA, least-privilege, password policy, password rotation
+- Config to record all resources configurations & compliance over time
+- CloudFormation to deploy stacks across accounts and regions
+- Trusted Advisor to get insights, Support Plan adapted to your needs
+- Send Service Logs and Access Logs to S3 or CloudWatch Logs
+- CloudTrail to record API calls made within your account
+- If your Account is compromised: change the root password, delete and rotate all passwords / keys, contact the AWS support
+- Allow users to create pre-defined stacks defined by admins using AWS Service Catalog
+
+---
+
+## Billing and Costing Tools 
+- Compute Optimizer: recommends resources’ configurations to reduce cost
+- Pricing Calculator: cost of services on AWS
+- Billing Dashboard: high level overview + free tier dashboard
+- Cost Allocation Tags: tag resources to create detailed reports
+- Cost and Usage Reports: most comprehensive billing dataset
+- Cost Explorer: View current usage (detailed) and forecast usage
+- Billing Alarms: in us-east-1 – track overall and per-service billing
+- Budgets: more advanced – track usage, costs, RI, and get alerts
+- Savings Plans: easy way to save based on long-term usage of AWS
+- Cost Anomaly Detection: detect unusual spends using Machine Learning
+- Service Quotas: notify you when you’re close to service quota threshold
+
+---
+
+## Trusted Advisor
+• No need to install anything – high level AWS account assessment
+• Analyze your AWS accounts and provides recommendation on 5 categories
+1. Cost optimization
+2. Performance
+3. Security
+4. Fault tolerance
+5. Service limits
+
+## Trusted Advisor – Support Plans
+### 7 CORE CHECKS 
+### Basic & Developer Support plan  
+1. S3 Bucket Permissions
+2. Security Groups – Specific Ports Unrestricted
+3. IAM Use (one IAM user minimum)
+4. MFA on Root Account
+5. EBS Public Snapshots
+6. RDS Public Snapshots
+7. Service Limits
+
+### FULL CHECKS 
+### Business & Enterprise Support plan
+- Full Checks available on the 5 categories
+- Ability to set CloudWatch alarms when reaching limits
+- Programmatic Access using AWS Support API
+
+---
