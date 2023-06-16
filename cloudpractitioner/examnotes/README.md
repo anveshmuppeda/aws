@@ -293,10 +293,12 @@ provider
 
 ## Shared Responsibility on AWS  
 - Shield: Automatic DDoS Protection + 24/7 support for advanced  
-- WAF: Firewall to filter incoming requests based on rules  
+- WAF: Firewall to filter incoming requests based on rules   
+  - AWS WAF is a web application firewall that helps protect your web applications or APIs against common web exploits that may affect availability, compromise security, or consume excessive resources.  
 - KMS: Encryption keys managed by AWS  
 - CloudHSM: Hardware encryption, we manage encryption keys  
 - AWS Certificate Manager: provision, manage, and deploy SSL/TLS Certificates  
+  - AWS Certificate Manager is a service that lets you easily provision, manage, and deploy public and private Secure Sockets Layer/Transport Layer Security (SSL/TLS) certificates for use with AWS services and your internal connected resources.
 - Artifact: Get access to compliance reports such as PCI, ISO, etc…  
 - GuardDuty: Find malicious behavior with VPC, DNS & CloudTrail Logs  
 - Inspector: find software vulnerabilities in EC2, ECR Images, and Lambda functions  
@@ -305,6 +307,7 @@ provider
 - CloudTrail: Track API calls made by users within account  
 - AWS Security Hub: gather security findings from multiple AWS accounts  
 - Amazon Detective: find the root cause of security issues or suspicious activities  
+  - Amazon Detective makes it easy to analyze, investigate, and quickly identify the root cause of potential security issues or suspicious activities.
 - AWS Abuse: Report AWS resources used for abusive or illegal purposes  
 - Root user privileges:  
   - Change account settings  
@@ -312,3 +315,5 @@ provider
   - Change or cancel your AWS Support plan   
   - Register as a seller in the Reserved Instance Marketplace  
 
+- Penetration Testing is allowed without prior approval on 8 services. DDoS, port flooding and protocol flooding are examples of prohibited activities.
+- 
