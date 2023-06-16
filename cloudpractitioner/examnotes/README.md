@@ -339,33 +339,33 @@ provider
 ---
 
 ## Account Best Practices 
-- Operate multiple accounts using Organizations
-- Use SCP (service control policies) to restrict account power
-- Easily setup multiple accounts with best-practices with AWS Control Tower
-- Use Tags & Cost Allocation Tags for easy management & billing
+- Operate multiple accounts using **Organizations**
+- Use **SCP** (service control policies) to restrict account power
+- Easily setup multiple accounts with best-practices with **AWS Control Tower**
+- Use **Tags** & Cost Allocation Tags for easy management & billing
 - IAM guidelines: MFA, least-privilege, password policy, password rotation
-- Config to record all resources configurations & compliance over time
-- CloudFormation to deploy stacks across accounts and regions
-- Trusted Advisor to get insights, Support Plan adapted to your needs
+- **Config** to record all resources configurations & compliance over time
+- **CloudFormation** to deploy stacks across accounts and regions
+- **Trusted Advisor** to get insights, Support Plan adapted to your needs
 - Send Service Logs and Access Logs to S3 or CloudWatch Logs
-- CloudTrail to record API calls made within your account
+- **CloudTrail** to record API calls made within your account
 - If your Account is compromised: change the root password, delete and rotate all passwords / keys, contact the AWS support
-- Allow users to create pre-defined stacks defined by admins using AWS Service Catalog
+- Allow users to create pre-defined stacks defined by admins using **AWS Service Catalog**.  
 
 ---
 
 ## Billing and Costing Tools 
-- Compute Optimizer: recommends resources’ configurations to reduce cost
-- Pricing Calculator: cost of services on AWS
-- Billing Dashboard: high level overview + free tier dashboard
-- Cost Allocation Tags: tag resources to create detailed reports
-- Cost and Usage Reports: most comprehensive billing dataset
-- Cost Explorer: View current usage (detailed) and forecast usage
-- Billing Alarms: in us-east-1 – track overall and per-service billing
-- Budgets: more advanced – track usage, costs, RI, and get alerts
-- Savings Plans: easy way to save based on long-term usage of AWS
-- Cost Anomaly Detection: detect unusual spends using Machine Learning
-- Service Quotas: notify you when you’re close to service quota threshold
+- **Compute Optimizer**: recommends resources’ configurations to reduce cost
+- **Pricing Calculator**: cost of services on AWS
+- **Billing Dashboard**: high level overview + free tier dashboard
+- **Cost Allocation Tags**: tag resources to create detailed reports
+- **Cost and Usage Reports**: most comprehensive billing dataset
+- **Cost Explorer**: View current usage (detailed) and forecast usage
+- **Billing Alarms**: in us-east-1 – track overall and per-service billing
+- **Budgets**: more advanced – track usage, costs, RI, and get alerts
+- **Savings Plans**: easy way to save based on long-term usage of AWS
+- **Cost Anomaly Detection**: detect unusual spends using Machine Learning
+- **Service Quotas**: notify you when you’re close to service quota threshold
 
 ---
 
