@@ -370,8 +370,8 @@ provider
 ---
 
 ## Trusted Advisor
-• No need to install anything – high level AWS account assessment
-• Analyze your AWS accounts and provides recommendation on 5 categories
+• No need to install anything – high level AWS account assessment  
+• Analyze your AWS accounts and provides recommendation on 5 categories  
 1. Cost optimization
 2. Performance
 3. Security
