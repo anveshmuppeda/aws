@@ -379,8 +379,7 @@ provider
 5. Service limits
 
 ## Trusted Advisor – Support Plans
-### 7 CORE CHECKS 
-### Basic & Developer Support plan  
+### 7 CORE CHECKS - Basic & Developer Support plan  
 1. S3 Bucket Permissions
 2. Security Groups – Specific Ports Unrestricted
 3. IAM Use (one IAM user minimum)
@@ -389,8 +388,7 @@ provider
 6. RDS Public Snapshots
 7. Service Limits
 
-### FULL CHECKS 
-### Business & Enterprise Support plan
+### FULL CHECKS - Business & Enterprise Support plan
 - Full Checks available on the 5 categories
 - Ability to set CloudWatch alarms when reaching limits
 - Programmatic Access using AWS Support API
