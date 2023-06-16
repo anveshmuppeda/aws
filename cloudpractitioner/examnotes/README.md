@@ -369,7 +369,8 @@ provider
 
 ---
 
-## Trusted Advisor
+## Trusted Advisor  
+AWS Trusted Advisor is an online tool that provides you real time guidance to help you provision your resources following AWS best practices, including performance, security, and fault tolerance, but also cost optimization and service limits.  
 • No need to install anything – high level AWS account assessment  
 • Analyze your AWS accounts and provides recommendation on 5 categories  
 1. Cost optimization
