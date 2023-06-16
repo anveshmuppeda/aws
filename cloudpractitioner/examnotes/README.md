@@ -319,19 +319,19 @@ provider
 - 
 
 ## AWS Machine Learning 
-- Rekognition: face detection, labeling, celebrity recognition
-- Transcribe: audio to text (ex: subtitles)
-- Polly: text to audio
-- Translate: translations
-- Lex: build conversational bots – chatbots
-- Connect: cloud contact center
-- Comprehend: natural language processing
-- SageMaker: machine learning for every developer and data scientist
-  - Amazon SageMaker is a fully managed service that provides every developer and data scientist with the ability to build, train, and deploy machine learning (ML) models quickly.
-- Forecast: build highly accurate forecasts
-- Kendra: ML-powered search engine
-- Personalize: real-time personalized recommendations
-  - Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.
-- Textract: detect text and data in documents
+- Rekognition: face detection, labeling, celebrity recognition  
+- Transcribe: audio to text (ex: subtitles)  
+- Polly: text to audio  
+- Translate: translations  
+- Lex: build conversational bots – chatbots  
+- Connect: cloud contact center  
+- Comprehend: natural language processing  
+- SageMaker: machine learning for every developer and data scientist  
+  - Amazon SageMaker is a fully managed service that provides every developer and data scientist with the ability to build, train, and deploy machine learning (ML) models quickly.  
+- Forecast: build highly accurate forecasts  
+- Kendra: ML-powered search engine  
+- Personalize: real-time personalized recommendations  
+  - Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.  
+- Textract: detect text and data in documents  
 
 
