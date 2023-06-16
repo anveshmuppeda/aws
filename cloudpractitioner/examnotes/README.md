@@ -355,7 +355,7 @@ provider
 ---
 
 ## Billing and Costing Tools 
-- **Compute Optimizer**: recommends resources’ configurations to reduce cost
+- **Compute Optimizer**: recommends resources’ configurations to reduce cost.  
    AWS Compute Optimizer recommends optimal AWS resources for your workloads to reduce costs and improve performance by using machine learning to analyze historical utilization metrics.  
 - **Pricing Calculator**: cost of services on AWS 
     The AWS Simple Monthly Calculator is an easy-to-use online tool that enables you to estimate their architecture solution monthly cost of AWS services for your use case based on your expected usage. It is being replaced by AWS Pricing Calculator.
