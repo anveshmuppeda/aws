@@ -395,3 +395,13 @@ AWS Trusted Advisor is an online tool that provides you real time guidance to he
 - Programmatic Access using AWS Support API
 
 ---
+
+## Support plans 
+1. AWS Basic Support Plan  
+2. AWS Developer Support Plan 
+3. AWS Business Support Plan (24/7) - is the most cost-effective option that offers 24x7 phone, email, and chat support
+4. AWS Enterprise On-Ramp Support Plan (24/7)
+5. AWS Enterprise Support Plan (24/7)
+
+---
+
