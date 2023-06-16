@@ -318,7 +318,9 @@ provider
 - Penetration Testing is allowed without prior approval on 8 services. DDoS, port flooding and protocol flooding are examples of prohibited activities.
 - 
 
-## AWS Machine Learning 
+----
+
+## AWS Machine Learning   
 - Rekognition: face detection, labeling, celebrity recognition  
 - Transcribe: audio to text (ex: subtitles)  
 - Polly: text to audio  
@@ -334,4 +336,4 @@ provider
   - Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.  
 - Textract: detect text and data in documents  
 
-
+---
