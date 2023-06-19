@@ -369,6 +369,11 @@ provider
 - **Cost Anomaly Detection**: detect unusual spends using Machine Learning
 - **Service Quotas**: notify you when you’re close to service quota threshold
 
+
+- **CloudFront** pricing is different across different geographic regions.  
+- The added data storage by **EBS Snapshots** are added cost in GB per month to EBS pricing. Other EBS pricing factors are: Volume type, Provisioned storage volume, IOPS, etc.  
+- Compute Savings Plans provide the most flexibility and help to reduce your costs by up to 66% in exchange for a commitment to a consistent amount of usage for a 1 or 3 year term. These plans automatically apply to EC2 instance usage regardless of instance family, size, AZ, region, OS or tenancy, and also apply to Fargate or Lambda usage.  
+
 ---
 
 ## Trusted Advisor  
