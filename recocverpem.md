@@ -56,3 +56,10 @@ Detach the volume from the temporary instance.
 Attach the volume back to the original instance, ensuring it's attached as the root volume (like /dev/sda1).  
 Start the original instance and try accessing it with the new key pair.  
 These steps can be complex, especially if you're not familiar with AWS or Linux systems. If unsure, consider seeking assistance or consulting AWS documentation to ensure you don't accidentally delete or modify critical data.   
+
+## Notes:  
+Correct, once you've lost or misplaced a PEM key in AWS, there's no direct way to retrieve or recover it from AWS itself. This is by design to maintain the security of your instances. The private key is meant to remain confidential, and AWS does not store or keep copies of user-generated keys for security reasons.  
+
+Your options, as previously mentioned, are primarily centered around regaining access to your AWS resources without the lost key. These methods involve working with existing backups, snapshots, or creating new resources with different keys.  
+
+It's crucial always to keep backups of your PEM keys in a secure location. Additionally, consider implementing other access management practices, such as using AWS Identity and Access Management (IAM) roles for accessing resources, which do not rely on key pairs in the same way EC2 instances do.  
