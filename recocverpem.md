@@ -26,6 +26,28 @@ Attach the Old Root Volume or Use the AMI:
 If you created an AMI, use it to launch a new instance. If you detached the old root volume, you can attach it to the new instance.  
 Access the New Instance: Now, you should be able to access this new instance using the new key pair. If everything looks good and all necessary data is there, you can terminate the old instance.  
 
+
+Step-by-Step Guide:   
+1. Halting the Instance:  
+
+Head to the AWS EC2 Dashboard.  
+Locate your affected instance, click on it, and from the "Actions" dropdown, select "Instance State" followed by "Stop".  
+2. Transition or Preserve Data:  
+
+Now that the instance is off, you have two choices:  
+a. Create an Amazon Machine Image (AMI) from the stopped instance.  
+b. Detach the instance's root volume for later use.  
+3. Launching a Fresh Instance:  
+
+Initiate the setup of a new EC2 instance. When prompted to choose a key pair, opt for the one you still possess (not the lost one).  
+4. Reconnect with Previous Data:  
+
+If you opted for an AMI, use it to spin up a new instance.  
+If you detached the root volume earlier, now's the time to reattach it to the fresh instance.  
+5. Validate and Clean Up:  
+
+You should now have access to this newly-created instance using your alternate key pair. After ensuring all your data is intact and the setup looks correct, you can safely terminate the inaccessible instance.  
+ 
 ## 2. Attach the Instance's Root Volume to Another Instance:  
 Context: This method allows you to access the file system of the original instance by attaching its root volume to another instance.  
 
