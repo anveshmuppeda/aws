@@ -11,3 +11,8 @@ Run below command to check the serverless installation
 serverless 
 ```
 
+
+## Login to AWS from serverless local machine setup  
+```
+serverless config --provider  aws --key <accesskey> --secret <secretkey> profile <aws-username>
+```
