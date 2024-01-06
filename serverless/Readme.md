@@ -13,6 +13,7 @@ serverless
 
 
 ## Login to AWS from serverless local machine setup  
+Adding AWS user to local serverless setup  
 ```
-serverless config --provider  aws --key <accesskey> --secret <secretkey> profile <aws-username>
+serverless config --provider  aws --key <accesskey> --secret <secretkey> --profile <aws-username>
 ```
