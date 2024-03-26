@@ -26,4 +26,4 @@ jobs:
       - name: Launch EC2 Instance
         if: ${{ github.event.inputs.run == 'true' || github.event_name == 'workflow_dispatch' }}
         run: |
-          aws ec2 run-instances --image-id ami-1234567890abcdef0 --instance-type t2.micro --key-name my-keypair --security-groups my-security-group
+          aws ec2 run-instances --image-id ami-053b0d53c279acc90 --instance-type t2.micro
