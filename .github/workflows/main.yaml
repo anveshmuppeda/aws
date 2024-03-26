@@ -1,0 +1,29 @@
+name: Launch EC2 Instance
+
+on:
+  workflow_dispatch:
+    inputs:
+      run:
+        description: 'Run workflow manually'
+        required: false
+
+jobs:
+  launch-ec2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: your-aws-region
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      - name: Launch EC2 Instance
+        if: ${{ github.event.inputs.run == 'true' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          aws ec2 run-instances --image-id ami-1234567890abcdef0 --instance-type t2.micro --key-name my-keypair --security-groups my-security-group
