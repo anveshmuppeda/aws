@@ -1,0 +1,8 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: whats this template for?
+
+Resources:
+  ec2-instance-day3-name:
+    Type: AWS::EC2::Instance
+    Properties:
+      name: xyz
