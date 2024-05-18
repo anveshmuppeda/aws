@@ -1,8 +1,9 @@
 # Author : Anvesh Muppeda  
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: AWS CFT for - Creating VPC, NAT Gateway, EIP,  Public & Private Subnetes, Route Tables, Internet Gateway, NACLs, Security Groups, EC2 Servers, Bastion, IAM Role, IAM Policy.
+Description: AWS CFT for - Creating VPC, NAT Gateway, EIP,  Public & Private Subnets, Route Tables, Internet Gateway, NACLs, Security Groups, EC2 Servers, Bastion, IAM Role, IAM Policy.
 
+# Parameters for VPC configuration, instance settings, and resource tagging
 Parameters:
   myTag:
     Description: Tag for the all resources
@@ -59,6 +60,7 @@ Parameters:
     Default: sg
 
 Resources:
+  # VPC resource
   MyVPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -69,6 +71,7 @@ Resources:
         - Key: myTag
           Value: !Ref myTag
   
+  # IAM Role for EC2 instances to list S3 buckets
   ListS3BucketsRole:
     Type: AWS::IAM::Role
     Properties:
@@ -83,6 +86,7 @@ Resources:
           - sts:AssumeRole
       Path: "/"
   
+  # IAM Policy to allow listing S3 buckets
   ListS3BucketsPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -103,6 +107,7 @@ Resources:
       Roles:
       - Ref: ListS3BucketsRole
 
+  # Public subnet in the first availability zone
   PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -116,6 +121,7 @@ Resources:
         - Key: myTag
           Value: !Ref myTag
 
+  # Public subnet in the second availability zone
   PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
@@ -129,6 +135,7 @@ Resources:
         - Key: myTag
           Value: !Ref myTag
 
+  # Private subnet in the first availability zone
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -142,6 +149,7 @@ Resources:
         - Key: myTag
           Value: !Ref myTag
 
+  # Private subnet in the second availability zone
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
@@ -155,6 +163,7 @@ Resources:
         - Key: myTag
           Value: !Ref myTag
   
+  # Internet Gateway resource
   MyIGW:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -164,12 +173,14 @@ Resources:
         - Key: myTag
           Value: !Ref myTag
 
+  # Attach Internet Gateway to the VPC
   MyIGWAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       InternetGatewayId: !Ref MyIGW
       VpcId: !Ref MyVPC
 
+  # Public Route Table
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -180,6 +191,7 @@ Resources:
         - Key: myTag
           Value: !Ref myTag
   
+  # Route in Public Route Table to allow internet traffic
   MainRouteTableIGWAttachement:
     Type: AWS::EC2::Route
     DependsOn: MyIGWAttachment
@@ -188,6 +200,7 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref MyIGW
   
+  # Private Route Table
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -198,18 +211,21 @@ Resources:
         - Key: myTag
           Value: !Ref myTag
   
+  # Associate Private Subnet 1 with Private Route Table
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PrivateRouteTable
       SubnetId: !Ref PrivateSubnet1
   
+  # Associate Private Subnet 2 with Private Route Table
   PrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PrivateRouteTable
       SubnetId: !Ref PrivateSubnet2
   
+  # Elastic IP for NAT Gateway
   NatGatewayEIP:
     Type: AWS::EC2::EIP
     DependsOn: MyIGWAttachment
@@ -221,12 +237,14 @@ Resources:
         - Key: myTag
           Value: !Ref myTag
   
+  # NAT Gateway in Public Subnet 1
   MyNatGateway:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatGatewayEIP.AllocationId
       SubnetId: !Ref PublicSubnet1
   
+  # Route in Private Route Table to route traffic through NAT Gateway
   PrivateRouteAssociateNAT:
     Type: AWS::EC2::Route
     Properties:
@@ -234,9 +252,7 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref MyNatGateway
   
-  ###########################################################################################
-  # Public Network ACL Firewall Protection (inbound and outbound traffic at the subnet level)
-  ####### Network ACL RULES for Public Subnets ###############################################
+  # Public Network ACL
   MyPublicNACL:
     Type: AWS::EC2::NetworkAcl
     Properties:
@@ -290,7 +306,7 @@ Resources:
        NetworkAclId:
          Ref: MyPublicNACL
   
-  ####### Network ACL RULES for Private Subnets ###############################################
+  # Private Network ACL
   MyPrivateNACL:
     Type: AWS::EC2::NetworkAcl
     Properties:
@@ -361,6 +377,7 @@ Resources:
        NetworkAclId:
          Ref: MyPrivateNACL
 
+  # Security Group for public instances
   PublicSercuritGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -386,6 +403,7 @@ Resources:
         - Key: myTag
           Value: !Ref myTag
     
+  # Security Group for private instances
   PrivateSercuritGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -423,6 +441,7 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
   
+  # Bastion Server in public subnet 1
   MyBastionServer:
     Type: AWS::EC2::Instance
     DependsOn: PublicSercuritGroup
@@ -450,6 +469,7 @@ Resources:
             systemctl enable httpd.service
             echo "Hello this is from Bastion Server, i.e., Public Subnet 1" > /var/www/html/index.html
   
+  # EC2 instance in private subnet 1
   MyPrivateServer1:
     Type: AWS::EC2::Instance
     DependsOn: PrivateSercuritGroup
@@ -479,6 +499,7 @@ Resources:
             yum update -y
             yum install python3
   
+  # EC2 instance in public subnet 2
   MyPublicServer:
     Type: AWS::EC2::Instance
     DependsOn: PublicSercuritGroup
@@ -504,6 +525,7 @@ Resources:
             systemctl enable httpd.service
             echo "Hello this is from Public Server, i.e., Public Subnet 2" > /var/www/html/index.html
   
+  # EC2 instance in private subnet 1
   MyPrivateServer2:
     Type: AWS::EC2::Instance
     DependsOn: PrivateSercuritGroup
@@ -532,6 +554,7 @@ Resources:
             yum install mysql-community-libs
             systemctl start mysqld
 
+# Outputs for VPC, subnets, and EC2 instances
 Outputs:
   VpcId:
     Description: VPC ID of the newly created VPC
