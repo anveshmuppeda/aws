@@ -2,7 +2,7 @@
 Welcome to your first AWS CDK project! This guide will help you create a simple Lambda function using TypeScript. Let's dive in step-by-step.
 
 ## Setting Up Your Project  
-Once everything is setup using [this page](./../README.MD), then follow the below commands to develop and deploy your first CDK project.
+Once everything is setup using [this page](./README.MD), then follow the below commands to develop and deploy your first CDK project.
 
 ### 1. Create a New Folder  
 
@@ -86,13 +86,13 @@ cdk deploy
 
 ## 10. Test the newly created Lambda function
 After deployment, test your Lambda function:  
-![New Lambda Function](./../images/aws-lambda-func.png)  
+![New Lambda Function](./images/aws-lambda-func.png)  
 
 **Configure test event using the below instructions.**  
-![Configure Test Event](./../images/configure-test-event.png)
+![Configure Test Event](./images/configure-test-event.png)
 
 **Run the Test event.**
-![alt text](./../images/run-test-evnt.png)
+![alt text](./images/run-test-evnt.png)
 
 ```sh
 Response
