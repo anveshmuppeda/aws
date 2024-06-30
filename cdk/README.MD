@@ -10,4 +10,5 @@ The AWS CDK consists of two primary parts:
 
 The AWS CDK supports TypeScript, JavaScript, Python, Java, C#/.Net, and Go. You can use any of these supported programming languages to define reusable cloud components known as constructs. You compose these together into stacks and apps. Then, you deploy your CDK applications to AWS CloudFormation to provision or update your resources.  
 
-[AWS Cloud Development Kit Architecture](./images/AppStacks.png)
+![AWS Cloud Development Kit Architecture](./images/AppStacks.png)
+
