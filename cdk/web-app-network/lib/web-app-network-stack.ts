@@ -13,11 +13,6 @@ export class WebAppNetworkStack extends cdk.Stack {
     // Configure Userdata for webserver
     const userDataScript = readFileSync('./src/userdata.sh', 'utf8');
 
-    // Import an existing key pair (replace 'your-key-pair-name' with the actual key name)
-    //const keyPair = ec2.KeyPair.fromKeyName(this, 'ImportedKeyPair', 'your-key-pair-name');
-
-    // const keyPair = ec2.KeyPair.fromKeyPairName(this,'ImportedKeyPair', 'your-key-pair-name' );
-
     // Create VPC
     const newWebAppVpc = new ec2.Vpc(this, 'WebAppVpc', {
       cidr: vpcCidr,
@@ -86,6 +81,6 @@ export class WebAppNetworkStack extends cdk.Stack {
 
     // Add the userdata script to EC2 instance
     WebServer.addUserData(userDataScript);
-    
+
   }
 }
