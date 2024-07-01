@@ -7,11 +7,7 @@ This guide provides steps to set up your local development environment for runni
 
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)
-3. [Setting Up AWS CDK](#setting-up-aws-cdk)
-4. [Configuring AWS Credentials](#configuring-aws-credentials)
-5. [Running the Project](#running-the-project)
-6. [Troubleshooting](#troubleshooting)
-7. [Resources](#resources)
+3. [Resources](#resources)
 
 ## Introduction  
 The AWS Cloud Development Kit (AWS CDK) is an open-source software development framework for defining cloud infrastructure in code and provisioning it through AWS CloudFormation.  
@@ -61,3 +57,8 @@ Before you start setting up your environment, ensure you have the following prer
 - **Configure security credentials for the CDK CLI**  
 
 
+## Resources   
+1. [Getting started with the AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
+2. [API Reference](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-construct-library.html)
+3. [The TypeScript Workshop](https://cdkworkshop.com/20-typescript.html)
+4. [AWS CDK Tutorial for Beginners - Step-by-Step Guide](https://bobbyhadz.com/blog/aws-cdk-tutorial-typescript)
