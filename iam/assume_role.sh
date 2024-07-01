@@ -1,7 +1,5 @@
 #!/bin/bash
 
-unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
-
 # Unset previous AWS environment variables
 unset AWS_ACCESS_KEY_ID
 unset AWS_SECRET_ACCESS_KEY
@@ -27,16 +25,24 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo $ASSUME_ROLE_OUTPUT
+# Extract the assumed role credentials
+ROLE_ACCESS_KEY_ID=$(echo $ASSUME_ROLE_OUTPUT | awk -F 'AccessKeyId: ' '{print $2}' | awk '{print $1}')
+ROLE_SECRET_ACCESS_KEY=$(echo $ASSUME_ROLE_OUTPUT | awk -F 'SecretAccessKey: ' '{print $2}' | awk '{print $1}')
+ROLE_SESSION_TOKEN=$(echo $ASSUME_ROLE_OUTPUT | awk -F 'SessionToken: ' '{print $2}')
 
-echo "Access Key"
+# Create a temporary file for export commands
+TEMP_FILE=$(mktemp /tmp/export_commands.XXXXXX)
 
-echo $ASSUME_ROLE_OUTPUT | grep -o '"AccessKeyId": "[^"]*' | sed 's/"AccessKeyId": "//'
+# Write the export commands to the temporary file
+echo "export AWS_ACCESS_KEY_ID=$ROLE_ACCESS_KEY_ID" > $TEMP_FILE
+echo "export AWS_SECRET_ACCESS_KEY=$ROLE_SECRET_ACCESS_KEY" >> $TEMP_FILE
+echo "export AWS_SESSION_TOKEN=$ROLE_SESSION_TOKEN" >> $TEMP_FILE
 
-# Extract and export the assumed role credentials
-export AWS_ACCESS_KEY_ID=$(echo $ASSUME_ROLE_OUTPUT | awk -F 'AccessKeyId: ' '{print $2}' | awk '{print $1}')
-export AWS_SECRET_ACCESS_KEY=$(echo $ASSUME_ROLE_OUTPUT | awk -F 'SecretAccessKey: ' '{print $2}' | awk '{print $1}')
-export AWS_SESSION_TOKEN=$(echo $ASSUME_ROLE_OUTPUT | awk -F 'SessionToken: ' '{print $2}')
+# Source the temporary file to set the environment variables
+source $TEMP_FILE
+
+# Remove the temporary file
+rm $TEMP_FILE
 
 # Verify the assumed role
 aws sts get-caller-identity
