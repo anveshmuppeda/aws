@@ -17,6 +17,12 @@
     ]
   },
   "context": {
+    "instanceName": "MyFirstEC2InstanceFromCDK-2",
+    "tags": {
+      "Environment": "Production",
+      "Owner": "Admin"
+    },
+    "keyName": "us-east-1",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [
