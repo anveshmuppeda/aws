@@ -1,2 +1,2 @@
 # Amazon Web Services  
-AWS basic notes   
+AWS Hands-On Guides       
