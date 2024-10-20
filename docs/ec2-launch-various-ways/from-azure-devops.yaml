@@ -1,0 +1,18 @@
+trigger: none
+
+pool: <pool-name>
+
+steps:
+
+  - script: |
+      aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
+      aws configure set aws_secret_access_key $(AWS_SECRET_ACCESS_KEY)
+      aws configure set default.region us-east-1
+    displayName: 'Set AWS Credentials'
+
+  - script: |
+      aws ec2 run-instances \
+            --image-id ami-053b0d53c279acc90 \
+            --instance-type t2.micro \
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=FromAzureDevOps}]"
+    displayName: 'Launch EC2 Instance'

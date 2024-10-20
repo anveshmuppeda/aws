@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS Class - Deploying my first instance through CloudFormation Templates
+
+Resources:
+  MyEC2InstanceDay3:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-053b0d53c279acc90
+      InstanceType: t2.micro
+      KeyName: awsclass
+      Tags:
+        - Key: Name
+          Value: aws-class-day3
+      SecurityGroupIds:
+        - !Ref WebAppSecurityGroup
+
+  WebAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Join ["-", [my-cft-sg, prod]]
+      GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0

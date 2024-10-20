@@ -1,0 +1,17 @@
+service: my-first-python-project
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+  environment:
+    FIRST_NAME: "Anvesh"
+
+functions:
+  hello:
+    handler: handler.hello
+  world:
+    handler: handler.hello
+    environment:
+      FIRST_NAME: "Muppeda"

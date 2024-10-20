@@ -1,0 +1,887 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS Class - Creating VPC, NAT Gateway, Public & Private Subnetes, Internet Gateway, 
+  and EIP Using the Cloud Formation Template. And deploying it in Dev, Test, and Prod. Based on the 
+  environment deploying the respective server.
+
+Parameters:
+  Environment:
+    Description: "Specify the Environment type of the stack."
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - test
+      - prod
+
+  Day:
+    Description: Day of the Class
+    Type: String
+    Default: Day-11
+
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.0.0.0/16
+  
+  PublicSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
+    Type: String
+    Default: 10.0.1.0/24
+
+  PublicSubnet2CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
+    Type: String
+    Default: 10.0.2.0/24
+
+  PrivateSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
+    Type: String
+    Default: 10.0.3.0/24
+
+  PrivateSubnet2CIDR:
+    Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
+    Type: String
+    Default: 10.0.4.0/24
+  
+  PublicSubnet3CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
+    Type: String
+    Default: 10.0.5.0/24
+
+  LinuxAmiID:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Description: "The ID of the AMI."
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  UbuntuAmiID:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Description: "The ID of the AMI."
+    Default: /aws/service/canonical/ubuntu/server/jammy/stable/current/amd64/hvm/ebs-gp2/ami-id
+
+  KeyPairName:
+    Type: String
+    Description: The name of an existing Amazon EC2 key pair in this region to use to SSH into the Amazon EC2 instances.
+    Default: us-east-1
+  
+  SecurityGroupSuffix:
+    Type: String
+    Description: Please enter the Security Group Suffix Name
+    Default: sg
+
+Mappings:
+  Environment:
+    dev:
+      VPCName: dev-vpc
+      ServerName: dev-server
+      InstanceType: t2.nano
+      PublicSubnetName: dev-public-subnet
+      PrivateSubnetName: dev-private-subnet
+      InternetGatewayName: dev-internet-gateway
+      PublicRouteTableName: dev-public-route-table
+      PrivateRouteTableName: dev-private-route-table
+      EIPName: dev-eip
+      NatGatewayName: dev-nat-gateway
+      PublicSecurityGroupName: dev-public-security-group
+      PrivateSercurityGroupName: dev-private-security-group
+      BastionServerName: dev-bastion
+      PrivateServerName: dev-private-server
+      PublicServerName: dev-public-server
+      JavaServerName: dev-java-server
+      PythonServerName: dev-python-server
+      DockerServerName: dev-docker-server
+      SNSTopicName: dev-cloudwatch-alarm-topic
+      CloudWatchSNSArn: arn:aws:sns:us-east-1:914272567218:dev-cloudwatch-alarm-topic
+
+    test:
+      VPCName: test-vpc
+      ServerName: test-server
+      InstanceType: t2.micro
+      PublicSubnetName: test-public-subnet
+      PrivateSubnetName: test-private-subnet
+      InternetGatewayName: test-internet-gateway
+      PublicRouteTableName: test-public-route-table
+      PrivateRouteTableName: test-private-route-table
+      EIPName: test-eip
+      NatGatewayName: test-nat-gateway
+      PublicSecurityGroupName: test-public-security-group
+      PrivateSercurityGroupName: test-private-security-group
+      BastionServerName: test-bastion
+      PrivateServerName: test-private-server
+      PublicServerName: test-public-server
+      JavaServerName: test-java-server
+      PythonServerName: test-python-server
+      DockerServerName: test-docker-server
+      SNSTopicName: test-cloudwatch-alarm-topic
+      CloudWatchSNSArn: arn:aws:sns:us-east-1:914272567218:test-cloudwatch-alarm-topic
+
+    prod:
+      VPCName: prod-vpc
+      ServerName: prod-server
+      InstanceType: t2.small
+      PublicSubnetName: prod-public-subnet
+      IndependentSubnetName: prod-specific-subnet
+      PrivateSubnetName: prod-private-subnet
+      InternetGatewayName: prod-internet-gateway
+      PublicRouteTableName: prod-public-route-table
+      PrivateRouteTableName: prod-private-route-table
+      EIPName: prod-eip
+      NatGatewayName: prod-nat-gateway
+      PublicSecurityGroupName: prod-public-security-group
+      PrivateSercurityGroupName: prod-private-security-group
+      BastionServerName: prod-bastion
+      PrivateServerName: prod-private-server
+      PublicServerName: prod-public-server
+      JavaServerName: prod-java-server
+      PythonServerName: prod-python-server
+      DockerServerName: prod-docker-server
+      SNSTopicName: prod-cloudwatch-alarm-topic
+      CloudWatchSNSArn: arn:aws:sns:us-east-1:914272567218:prod-cloudwatch-alarm-topic
+
+Conditions:
+    isProduction: !Equals
+      - !Ref Environment
+      - prod
+    isDev: !Equals
+      - !Ref Environment
+      - dev
+    isTest: !Equals
+      - !Ref Environment
+      - test
+
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, VPCName]
+        - Key: Day
+          Value: !Ref Day
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!FindInMap [Environment, !Ref Environment, PublicSubnetName], 1]]
+        - Key: Day
+          Value: !Ref Day
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Ref PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!FindInMap [Environment, !Ref Environment, PublicSubnetName], 2]]
+        - Key: Day
+          Value: !Ref Day
+  
+  PublicSubnet3:
+    Condition: isProduction
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Ref PublicSubnet3CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, IndependentSubnetName]
+        - Key: Day
+          Value: !Ref Day
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!FindInMap [Environment, !Ref Environment, PrivateSubnetName], 1]]
+        - Key: Day
+          Value: !Ref Day
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!FindInMap [Environment, !Ref Environment, PrivateSubnetName], 2]]
+        - Key: Day
+          Value: !Ref Day
+  
+  MyIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, InternetGatewayName]
+        - Key: Day
+          Value: !Ref Day
+
+  MyIGWAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref MyIGW
+      VpcId: !Ref MyVPC
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, PublicRouteTableName]
+        - Key: Day
+          Value: !Ref Day
+  
+  MainRouteTableIGWAttachement:
+    Type: AWS::EC2::Route
+    DependsOn: MyIGWAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyIGW
+  
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, PrivateRouteTableName]
+        - Key: Day
+          Value: !Ref Day
+  
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet1
+  
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet2
+  
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    DependsOn: MyIGWAttachment
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, EIPName]
+        - Key: Day
+          Value: !Ref Day
+  
+  MyNatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, NatGatewayName]
+        - Key: Day
+          Value: !Ref Day
+  
+  PrivateRouteAssociateNAT:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref MyNatGateway
+  
+  PublicSercuritGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !FindInMap [Environment, !Ref Environment, PublicSecurityGroupName]
+      GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, PublicSecurityGroupName]
+        - Key: Day
+          Value: !Ref Day
+    
+  PrivateSercuritGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !FindInMap [Environment, !Ref Environment, PrivateSercurityGroupName]
+      GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, PrivateSercurityGroupName]
+        - Key: Day
+          Value: !Ref Day
+  
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+  
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+  
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
+  
+  MyBastionServer:
+    Type: AWS::EC2::Instance
+    DependsOn: PublicSercuritGroup
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      ImageId: !Ref LinuxAmiID
+      InstanceType: !FindInMap [Environment, !Ref Environment, InstanceType]
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref PublicSercuritGroup
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, BastionServerName]
+        - Key: Day
+          Value: !Ref Day
+        - Key: Application
+          Value: Bastion
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd.x86_64
+            systemctl start httpd.service
+            systemctl enable httpd.service
+            echo "Hello this is from Bastion Server, i.e., Public Subnet 1" > /var/www/html/index.html
+  
+  MyPrivateServer1:
+    Type: AWS::EC2::Instance
+    DependsOn: PrivateSercuritGroup
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      ImageId: !Ref LinuxAmiID
+      InstanceType: !FindInMap [Environment, !Ref Environment, InstanceType]
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref PrivateSercuritGroup
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!FindInMap [Environment, !Ref Environment, PrivateServerName], 1]]
+        - Key: Day
+          Value: !Ref Day
+        - Key: Application
+          Value: Python
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd.x86_64
+            systemctl start httpd.service
+            systemctl enable httpd.service
+            echo "Hello this is from Private Server, i.e., Private Subnete 1" > /var/www/html/index.html
+            yum update -y
+            yum install python3
+  
+  MyPublicServer:
+    Type: AWS::EC2::Instance
+    DependsOn: PublicSercuritGroup
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      ImageId: !Ref LinuxAmiID
+      InstanceType: !FindInMap [Environment, !Ref Environment, InstanceType]
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref PublicSercuritGroup
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!FindInMap [Environment, !Ref Environment, PublicServerName], 2]]
+        - Key: Day
+          Value: !Ref Day
+        - Key: Application
+          Value: Public Application
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd.x86_64
+            systemctl start httpd.service
+            systemctl enable httpd.service
+            echo "Hello this is from Public Server, i.e., Public Subnet 2" > /var/www/html/index.html
+  
+  MyPrivateServer2:
+    Type: AWS::EC2::Instance
+    DependsOn: PrivateSercuritGroup
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      ImageId: !Ref LinuxAmiID
+      InstanceType: !FindInMap [Environment, !Ref Environment, InstanceType]
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref PrivateSercuritGroup
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!FindInMap [Environment, !Ref Environment, PrivateServerName], 2]]
+        - Key: Day
+          Value: !Ref Day
+        - Key: Application
+          Value: MySQL
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd.x86_64
+            systemctl start httpd.service
+            systemctl enable httpd.service
+            echo "Hello this is from Private Server, i.e., Private Subnete 2" > /var/www/html/index.html
+            yum install mysql-community-server
+            yum install mysql-community-libs
+            systemctl start mysqld
+
+  MyTestJavaServer:
+    Type: AWS::EC2::Instance
+    Condition: isTest
+    DependsOn: PrivateSercuritGroup
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      ImageId: !Ref LinuxAmiID
+      InstanceType: !FindInMap [Environment, !Ref Environment, InstanceType]
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref PrivateSercuritGroup
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!FindInMap [Environment, !Ref Environment, JavaServerName], java-server]]
+        - Key: Day
+          Value: !Ref Day
+        - Key: Application
+          Value: Java
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd.x86_64
+            systemctl start httpd.service
+            systemctl enable httpd.service
+            echo "Hello this is from Java Server, i.e., Private Subnete 2" > /var/www/html/index.html
+            sudo yum install java
+            sudo yum install java-devel
+            sudo yum install java-17-openjdk
+            sudo alternatives --config java
+            export JAVA_HOME=(/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.322.b06-2.el8_5.x86_64/jre
+            sudo sh -c "echo export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.322.b06-2.el8_5.x86_64/jre >> /etc/environment"
+            sudo yum install wget
+            cd ~
+            wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm"
+            sudo yum localinstall jdk-17_linux-x64_bin.rpm
+            rm ~/jdk-17_linux-x64_bin.rpm
+            sudo alternatives --config java
+  
+  MyDevPythonServer:
+    Type: AWS::EC2::Instance
+    Condition: isDev
+    DependsOn: PrivateSercuritGroup
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      ImageId: !Ref LinuxAmiID
+      InstanceType: !FindInMap [Environment, !Ref Environment, InstanceType]
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref PrivateSercuritGroup
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!FindInMap [Environment, !Ref Environment, PrivateServerName], python-server]]
+        - Key: Day
+          Value: !Ref Day
+        - Key: Application
+          Value: Python
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd.x86_64
+            systemctl start httpd.service
+            systemctl enable httpd.service
+            echo "Hello this is from **DEV** Python Server, i.e., Private Subnete 2" > /var/www/html/index.html
+            yum install python3
+            systemctl start mysqld
+
+  MyProdDockerServer:
+    Type: AWS::EC2::Instance
+    Condition: isProduction
+    DependsOn: PrivateSercuritGroup
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      ImageId: !Ref UbuntuAmiID
+      InstanceType: !FindInMap [Environment, !Ref Environment, InstanceType]
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref PrivateSercuritGroup
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Environment, docker-server]]
+        - Key: Day
+          Value: !Ref Day
+        - Key: Application
+          Value: Docker
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            #updating the apt repository
+            apt-get update -y
+
+            #Docker Installation
+            #If you are running Linux you will need to install Docker directly. You should be logged in as a user with sudo privileges. First, you will need to ensure that you have the command line utility cURL. Do this by opening a terminal and typing
+            which curl
+            sudo apt-get update
+            #If cURL is not installed, update your package manager and install it, using:
+            sudo apt-get install curl
+            #Now that you have cURL, you can use it to get the latest Docker package:
+            curl -fsSL https://get.docker.com/ | sh
+            #Add your account to the docker group.
+            #sudo usermod -aG docker <your_username>, here <your_username> is root
+            sudo usermod -aG docker root
+            #This step is required to be able to run Docker commands as a non-root user. You will have to log out and log back in for the change to take effect.
+            #Now you should have Docker! Verify that it is installed by running the hello-world container:
+            docker run hello-world
+
+            #Running our Actual Website using nginx:
+            docker run -d -p 80:80 --name nginx nginx
+  
+  SNSTopicCloudWatchAlarm:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "cloudwatch-alarm-topic"
+      Subscription:
+        - Endpoint: "anvesh.muppeda@gmail.com"
+          Protocol: "email"
+        - Endpoint: "testing@gmail.com"
+          Protocol: "email"
+        - Endpoint: "rr@gmail.com"
+          Protocol: "email"
+      TopicName: !FindInMap [Environment, !Ref Environment , SNSTopicName]
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment , SNSTopicName]
+        - Key: Day
+          Value: !Ref Day
+        - Key: Application
+          Value: RR
+  
+  BastionCloudwatchAlarm:
+    DependsOn: SNSTopicCloudWatchAlarm
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+        AlarmName: !Join ["-", [!FindInMap [Environment, !Ref Environment, BastionServerName], 1-cpu_utilization]]
+        AlarmDescription: |-
+            Bastion is consuming high CPU Utilization, please check and fix the issues.
+        ActionsEnabled: true
+        OKActions: []
+        AlarmActions:
+            - !FindInMap [Environment, !Ref Environment , CloudWatchSNSArn]
+        InsufficientDataActions: []
+        MetricName: CPUUtilization
+        Namespace: AWS/EC2
+        Statistic: Average
+        Dimensions:
+            - Name: InstanceId
+              Value: !Ref 'MyBastionServer'
+        Period: 300
+        EvaluationPeriods: 1
+        DatapointsToAlarm: 1
+        Threshold: 80
+        ComparisonOperator: GreaterThanThreshold
+        TreatMissingData: missing
+  
+  PrivateServer1CloudwatchAlarm:
+    DependsOn: SNSTopicCloudWatchAlarm
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+        AlarmName: !Join ["-", [!FindInMap [Environment, !Ref Environment, PrivateServerName], 1-cpu_utilization]]
+        AlarmDescription: |-
+            Private server 1 is consuming high CPU Utilization, please check and fix the issues.
+        ActionsEnabled: true
+        OKActions: []
+        AlarmActions:
+            - !FindInMap [Environment, !Ref Environment , CloudWatchSNSArn]
+        InsufficientDataActions: []
+        MetricName: CPUUtilization
+        Namespace: AWS/EC2
+        Statistic: Average
+        Dimensions:
+            - Name: InstanceId
+              Value: !Ref 'MyPrivateServer1'
+        Period: 300
+        EvaluationPeriods: 1
+        DatapointsToAlarm: 1
+        Threshold: 80
+        ComparisonOperator: GreaterThanThreshold
+        TreatMissingData: missing
+  
+  PrivateServer2CloudwatchAlarm:
+    DependsOn: SNSTopicCloudWatchAlarm
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+        AlarmName: !Join ["-", [!FindInMap [Environment, !Ref Environment, PrivateServerName], 2-cpu_utilization]]
+        AlarmDescription: |-
+            Private server 2 is consuming high CPU Utilization, please check and fix the issues.
+        ActionsEnabled: true
+        OKActions: []
+        AlarmActions:
+            - !FindInMap [Environment, !Ref Environment , CloudWatchSNSArn]
+        InsufficientDataActions: []
+        MetricName: CPUUtilization
+        Namespace: AWS/EC2
+        Statistic: Average
+        Dimensions:
+            - Name: InstanceId
+              Value: !Ref 'MyPrivateServer2'
+        Period: 300
+        EvaluationPeriods: 1
+        DatapointsToAlarm: 1
+        Threshold: 80
+        ComparisonOperator: GreaterThanThreshold
+        TreatMissingData: missing
+  
+  MyPublicServerCloudwatchAlarm:
+    DependsOn: SNSTopicCloudWatchAlarm
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+        AlarmName: !Join ["-", [!FindInMap [Environment, !Ref Environment, PublicServerName], cpu_utilization]]
+        AlarmDescription: |-
+            Public Server is consuming high CPU Utilization, please check and fix the issues.
+        ActionsEnabled: true
+        OKActions: []
+        AlarmActions:
+            - !FindInMap [Environment, !Ref Environment , CloudWatchSNSArn]
+        InsufficientDataActions: []
+        MetricName: CPUUtilization
+        Namespace: AWS/EC2
+        Statistic: Average
+        Dimensions:
+            - Name: InstanceId
+              Value: !Ref 'MyPublicServer'
+        Period: 300
+        EvaluationPeriods: 1
+        DatapointsToAlarm: 1
+        Threshold: 80
+        ComparisonOperator: GreaterThanThreshold
+        TreatMissingData: missing
+  
+  PythonServerCloudwatchAlarm:
+    DependsOn: SNSTopicCloudWatchAlarm
+    Condition: isDev
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+        AlarmName: !Join ["-", [!FindInMap [Environment, !Ref Environment, PythonServerName], cpu_utilization]]
+        AlarmDescription: |-
+            Python server is consuming high CPU Utilization, please check and fix the issues.
+        ActionsEnabled: true
+        OKActions: []
+        AlarmActions:
+            - !FindInMap [Environment, !Ref Environment , CloudWatchSNSArn]
+        InsufficientDataActions: []
+        MetricName: CPUUtilization
+        Namespace: AWS/EC2
+        Statistic: Average
+        Dimensions:
+            - Name: InstanceId
+              Value: !Ref 'MyDevPythonServer'
+        Period: 300
+        EvaluationPeriods: 1
+        DatapointsToAlarm: 1
+        Threshold: 80
+        ComparisonOperator: GreaterThanThreshold
+        TreatMissingData: missing
+  
+  JavaServerCloudwatchAlarm:
+    DependsOn: SNSTopicCloudWatchAlarm
+    Condition: isTest
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+        AlarmName: !Join ["-", [!FindInMap [Environment, !Ref Environment, JavaServerName], cpu_utilization]]
+        AlarmDescription: |-
+            Java Server is consuming high CPU Utilization, please check and fix the issues.
+        ActionsEnabled: true
+        OKActions: []
+        AlarmActions:
+            - !FindInMap [Environment, !Ref Environment , CloudWatchSNSArn]
+        InsufficientDataActions: []
+        MetricName: CPUUtilization
+        Namespace: AWS/EC2
+        Statistic: Average
+        Dimensions:
+            - Name: InstanceId
+              Value: !Ref 'MyTestJavaServer'
+        Period: 300
+        EvaluationPeriods: 1
+        DatapointsToAlarm: 1
+        Threshold: 80
+        ComparisonOperator: GreaterThanThreshold
+        TreatMissingData: missing
+  
+  DockerServerCloudwatchAlarm:
+    DependsOn: SNSTopicCloudWatchAlarm
+    Condition: isProduction
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+        AlarmName: !Join ["-", [!FindInMap [Environment, !Ref Environment, DockerServerName], cpu_utilization]]
+        AlarmDescription: |-
+            Docker server is consuming high CPU Utilization, please check and fix the issues.
+        ActionsEnabled: true
+        OKActions: []
+        AlarmActions:
+            - !FindInMap [Environment, !Ref Environment , CloudWatchSNSArn]
+        InsufficientDataActions: []
+        MetricName: CPUUtilization
+        Namespace: AWS/EC2
+        Statistic: Average
+        Dimensions:
+            - Name: InstanceId
+              Value: !Ref 'MyProdDockerServer'
+        Period: 300
+        EvaluationPeriods: 1
+        DatapointsToAlarm: 1
+        Threshold: 80
+        ComparisonOperator: GreaterThanThreshold
+        TreatMissingData: missing
+
+
+Outputs:
+  VpcId:
+    Description: VPC ID of the newly created VPC
+    Value: !Ref MyVPC
+    
+  PrivateServer1InstanceId:
+    Description: InstanceId of the Bastion Server
+    Value: !Ref 'MyPrivateServer1'
+
+  PrivateServer2InstanceId:
+    Description: InstanceId of the Bastion Server
+    Value: !Ref 'MyPrivateServer2'
+
+  BastionInstanceId:
+    Description: InstanceId of the Bastion Server
+    Value: !Ref 'MyBastionServer'
+
+  BastionPublicIP:
+    Description: Public IP address of the Bastion Server
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !GetAtt 
+          - MyBastionServer
+          - PublicIp
+
+  PublicInstanceId:
+    Description: InstanceId of the Public Server
+    Value: !Ref 'MyPublicServer'
+
+  PublicServerPublicIP:
+    Description: Public IP address of the Public Server
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !GetAtt 
+          - MyPublicServer
+          - PublicIp
+
+  DockerInstanceId:
+    Condition: isProduction
+    Description: InstanceId of the Docker Server
+    Value: !Ref 'MyProdDockerServer'
+
+  DockerWebsiteURL:
+    Description: URL for Docker Website
+    Condition: isProduction
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !GetAtt 
+          - MyProdDockerServer
+          - PublicIp
+
+  JavaInstanceId:
+    Condition: isTest
+    Description: InstanceId of the Java Server
+    Value: !Ref 'MyTestJavaServer'
+
+  JavaPublicIP:
+    Condition: isTest
+    Description: Public IP address of the  Java Server
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !GetAtt 
+          - MyTestJavaServer
+          - PublicIp
+
+  PythonInstanceId:
+    Condition: isDev
+    Description: InstanceId of the Python Server
+    Value: !Ref 'MyDevPythonServer'
+
+  PythonPublicIP:
+    Condition: isDev
+    Description: Public IP address of the Python Server
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !GetAtt 
+          - MyDevPythonServer
+          - PublicIp

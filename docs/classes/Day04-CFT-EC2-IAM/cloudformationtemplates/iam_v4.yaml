@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'IAM User creation'
+Parameters:
+  Password:
+    NoEcho: 'true'
+    Type: String
+    Description: Please enter New account password
+    MinLength: '1'
+    MaxLength: '41'
+    ConstraintDescription: the password must be between 1 and 41 characters
+Resources:
+  CFTUserCreation:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password: !Ref 'Password'
+      UserName: day4classuser
+      Tags:
+        - Key: name
+          Value: iamuserday4
+  CFTGroupCreation:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: day4classgroup
+  AddingUserToGroup:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: !Ref 'CFTGroupCreation'
+      Users: [!Ref 'CFTUserCreation']
+  IAMGroupPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: Ec2IAMPolicyForday4classgroup
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: ec2:*
+          Resource: '*'
+      Groups:
+        - !Ref 'CFTGroupCreation'

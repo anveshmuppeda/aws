@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS Class - Deploying my first instance through CloudFormation Templates
+
+Parameters:
+  AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+  Environment:
+    Description: "Specify the Environment type of the stack."
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - test
+      - prod
+  AmiID:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Description: "The ID of the AMI."
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  KeyPairName:
+    Type: String
+    Description: The name of an existing Amazon EC2 key pair in this region to use to SSH into the Amazon EC2 instances.
+    Default: us-east-1
+
+Mappings:
+  Environment:
+    dev:
+      name: dev-server
+      InstanceType: t2.micro
+    test:
+      name: test-server
+      InstanceType: t2.micro
+    prod:
+      name: prod-server
+      InstanceType: t2.small
+  Application:
+    Python:
+      name: test
+    SQL:
+      name: test
+Resources:
+  MyEC2InstanceDay3:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      ImageId: !Ref AmiID
+      Tags:
+        - Key: Name
+          Value: !FindInMap [Environment, !Ref Environment, name]
+      InstanceType: !FindInMap [Environment, !Ref Environment, InstanceType]
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref WebAppSecurityGroup
+
+  WebAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Join ["-", [!Ref Environment, sg]]
+      GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0

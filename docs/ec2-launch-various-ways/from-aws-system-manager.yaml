@@ -1,0 +1,30 @@
+schemaVersion: '0.3'
+description: Runbook to launch an EC2 instance
+parameters:
+  InstanceType:
+    type: String
+    description: The type of EC2 instance to launch (e.g., t2.micro)
+    default: "t2.micro"
+  ImageId:
+    type: String
+    description: The ID of the Amazon Machine Image (AMI) to use for the instance
+    default: "ami-053b0d53c279acc90"
+  TagName:
+    type: String
+    description: The name of the tag to apply to the instance
+    default: "Name"
+  TagValue:
+    type: String
+    description: The value of the tag to apply to the instance
+    default: "From-AWS-SSM"
+mainSteps:
+  - action: aws:runInstances
+    name: RunInstance
+    inputs:
+      ImageId: "{{ ImageId }}"
+      InstanceType: "{{ InstanceType }}"
+      TagSpecifications:
+        - ResourceType: instance
+          Tags:
+            - Key: "{{ TagName }}"
+              Value: "{{ TagValue }}"
