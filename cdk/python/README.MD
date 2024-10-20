@@ -10,3 +10,5 @@ cdk bootstrap 463470985368/us-east-1
 cdk init sample-app --language python
 ```  
 
+## Reference  
+https://docs.aws.amazon.com/cdk/api/v2/python/  
