@@ -527,6 +527,52 @@ Resources:
             yum install mysql-community-server
             yum install mysql-community-libs
             systemctl start mysqld
+  
+  # Application Load Balancer
+  MyALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: MyALB
+      Scheme: internet-facing
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      SecurityGroups:
+        - !Ref PublicSercuritGroup
+      Type: application
+      Tags:
+        - Key: Name
+          Value: MyALB
+        - Key: myTag
+          Value: !Ref myTag
+
+  # Target Group for Private Servers
+  MyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: MyTargetGroup
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref MyVPC
+      HealthCheckPath: /
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP
+      Targets:
+        - Id: !Ref MyPrivateServer1
+          Port: 80
+        - Id: !Ref MyPrivateServer2
+          Port: 80
+
+  # Listener for ALB
+  MyALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref MyTargetGroup
+      LoadBalancerArn: !Ref MyALB
+      Port: 80
+      Protocol: HTTP
 
 # Outputs for VPC, subnets, and EC2 instances
 Outputs:
