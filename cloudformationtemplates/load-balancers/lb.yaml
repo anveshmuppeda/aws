@@ -1,12 +1,12 @@
 # Author : Anvesh Muppeda  
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: AWS CFT for - Creating VPC, NAT Gateway, EIP,  Public & Private Subnets, Route Tables, Internet Gateway, NACLs, Security Groups, EC2 Servers, Bastion, IAM Role, IAM Policy.
+Description: AWS CFT for - Creating VPC, NAT Gateway, EIP, Public & Private Subnets, Route Tables, Internet Gateway, NACLs, Security Groups, EC2 Servers, Bastion, IAM Role, IAM Policy, ALB.
 
 # Parameters for VPC configuration, instance settings, and resource tagging
 Parameters:
   myTag:
-    Description: Tag for the all resources
+    Description: Tag for all resources
     Type: String
     Default: loadbalancer-simulation
 
@@ -67,45 +67,9 @@ Resources:
       CidrBlock: !Ref VpcCIDR
       Tags:
         - Key: Name
-          Value: MyCFT-Demo-VPC
+          Value: MyVPC-LoadBalancer-Demo
         - Key: myTag
           Value: !Ref myTag
-  
-  # IAM Role for EC2 instances to list S3 buckets
-  ListS3BucketsRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - ec2.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Path: "/"
-  
-  # IAM Policy to allow listing S3 buckets
-  ListS3BucketsPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: ListS3BucketsPolicy
-      PolicyDocument:
-        Statement:
-        - Effect: Allow
-          Action:
-          - s3:List*
-          Resource: "*"
-      Roles:
-      - Ref: ListS3BucketsRole
-  
-  ListS3BucketsInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Path: "/"
-      Roles:
-      - Ref: ListS3BucketsRole
 
   # Public subnet in the first availability zone
   PublicSubnet1:
@@ -117,7 +81,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: Public-1A
+          Value: Public-Subnet-AZ1-LB
         - Key: myTag
           Value: !Ref myTag
 
@@ -131,7 +95,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: Public-2A
+          Value: Public-Subnet-AZ2-LB
         - Key: myTag
           Value: !Ref myTag
 
@@ -145,7 +109,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: Private-LB-1A
+          Value: Private-Subnet-AZ1-App
         - Key: myTag
           Value: !Ref myTag
 
@@ -159,7 +123,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: Private-LB-2A
+          Value: Private-Subnet-AZ2-App
         - Key: myTag
           Value: !Ref myTag
   
@@ -169,7 +133,7 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value: MyIGW
+          Value: IGW-LB-Internet
         - Key: myTag
           Value: !Ref myTag
 
@@ -187,7 +151,7 @@ Resources:
       VpcId: !Ref MyVPC
       Tags:
         - Key: Name
-          Value: Public_RT
+          Value: RT-Pub-LB
         - Key: myTag
           Value: !Ref myTag
   
@@ -207,7 +171,7 @@ Resources:
       VpcId: !Ref MyVPC
       Tags:
         - Key: Name
-          Value: Private_RT
+          Value: RT-Priv-App
         - Key: myTag
           Value: !Ref myTag
   
@@ -233,7 +197,7 @@ Resources:
       Domain: vpc
       Tags:
         - Key: Name
-          Value: MyEIP
+          Value: EIP-NAT-GW
         - Key: myTag
           Value: !Ref myTag
   
@@ -243,6 +207,11 @@ Resources:
     Properties:
       AllocationId: !GetAtt NatGatewayEIP.AllocationId
       SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: NAT-GW-Pub-1A
+        - Key: myTag
+          Value: !Ref myTag
   
   # Route in Private Route Table to route traffic through NAT Gateway
   PrivateRouteAssociateNAT:
@@ -259,7 +228,7 @@ Resources:
        VpcId: !Ref MyVPC
        Tags:
        - Key: Name
-         Value: Public-Nacl
+         Value: NACL-Pub-LB
   publicInboundRule:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -313,7 +282,7 @@ Resources:
        VpcId: !Ref MyVPC
        Tags:
        - Key: Name
-         Value: Private-Nacl
+         Value: NACL-Priv-App
   privateInboundRule:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -352,6 +321,31 @@ Resources:
       PortRange:
         From: '443'
         To: '443'
+  privateInboundEphemeralNACL:
+    Type: "AWS::EC2::NetworkAclEntry"
+    Properties:
+      NetworkAclId:
+        Ref: MyPrivateNACL
+      RuleNumber: 97
+      Protocol: "6"
+      RuleAction: "allow"
+      Egress: "false"
+      CidrBlock: "0.0.0.0/0"
+      PortRange:
+        From: '1024'
+        To: '65535'
+  PrivateInboundICMP:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref MyPrivateNACL
+      RuleNumber: 110
+      Protocol: 1  # ICMP protocol number
+      RuleAction: allow
+      Egress: false
+      CidrBlock: "0.0.0.0/0"
+      Icmp:
+        Type: -1  # -1 means all ICMP types
+        Code: -1  # -1 means all codes
   privateOutboundRule:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -377,12 +371,12 @@ Resources:
        NetworkAclId:
          Ref: MyPrivateNACL
 
-  # Security Group for public instances
-  PublicSercuritGroup:
+  # Security Group for ALB
+  ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Join ["-", [public, !Ref SecurityGroupSuffix]]
-      GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
+      GroupName: !Join ["-", [alb, !Ref SecurityGroupSuffix]]
+      GroupDescription: "Allow HTTP/HTTPS inbound traffic"
       VpcId: !Ref MyVPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -393,16 +387,12 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: public-security-group
+          Value: SG-ALB-LB
         - Key: myTag
           Value: !Ref myTag
-    
+
   # Security Group for private instances
   PrivateSercuritGroup:
     Type: AWS::EC2::SecurityGroup
@@ -414,18 +404,18 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
+          SourceSecurityGroupId: !Ref ALBSecurityGroup  # Allow traffic from ALB
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: private-security-group
+          Value: SG-Private-Instances-App
         - Key: myTag
           Value: !Ref myTag
   
@@ -441,19 +431,17 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
   
-  # Bastion Server in public subnet 1
+    # Bastion Server in public subnet 1
   MyBastionServer:
     Type: AWS::EC2::Instance
-    DependsOn: PublicSercuritGroup
+    DependsOn: ALBSecurityGroup
     Properties:
       SubnetId: !Ref PublicSubnet1
       ImageId: !Ref AmiID
       InstanceType: !Ref TypeOfInstance
       KeyName: !Ref KeyPairName
       SecurityGroupIds:
-        - !Ref PublicSercuritGroup
-      IamInstanceProfile:
-        Ref: ListS3BucketsInstanceProfile
+        - !Ref ALBSecurityGroup
       Tags:
         - Key: Name
           Value: bastion
@@ -478,13 +466,11 @@ Resources:
       ImageId: !Ref AmiID
       InstanceType: !Ref TypeOfInstance
       KeyName: !Ref KeyPairName
-      IamInstanceProfile:
-        Ref: ListS3BucketsInstanceProfile
       SecurityGroupIds:
         - !Ref PrivateSercuritGroup
       Tags:
         - Key: Name
-          Value: private1
+          Value: WebServer-Priv-AZ1-App
         - Key: myTag
           Value: !Ref myTag
       UserData:
@@ -495,9 +481,9 @@ Resources:
             yum install -y httpd.x86_64
             systemctl start httpd.service
             systemctl enable httpd.service
-            echo "Hello this is from Private Server, i.e., Private Subnete 1" > /var/www/html/index.html
+            echo "Hello from Private App Server 1 in Private Subnet 1" > /var/www/html/index.html
   
-  # EC2 instance in private subnet 1
+  # EC2 instance in private subnet 2
   MyPrivateServer2:
     Type: AWS::EC2::Instance
     DependsOn: PrivateSercuritGroup
@@ -510,7 +496,7 @@ Resources:
         - !Ref PrivateSercuritGroup
       Tags:
         - Key: Name
-          Value: private2
+          Value: WebServer-Priv-AZ2-App
         - Key: myTag
           Value: !Ref myTag
       UserData:
@@ -521,7 +507,7 @@ Resources:
             yum install -y httpd.x86_64
             systemctl start httpd.service
             systemctl enable httpd.service
-            echo "Hello this is from Private Server, i.e., Private Subnet 2" > /var/www/html/index.html
+            echo "Hello from Private App Server 2 in Private Subnet 2" > /var/www/html/index.html
   
   # Application Load Balancer
   MyALB:
@@ -533,11 +519,11 @@ Resources:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
       SecurityGroups:
-        - !Ref PublicSercuritGroup
+        - !Ref ALBSecurityGroup
       Type: application
       Tags:
         - Key: Name
-          Value: MyALB
+          Value: ALB-LoadBalancer
         - Key: myTag
           Value: !Ref myTag
 
@@ -545,7 +531,7 @@ Resources:
   MyTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: MyTargetGroup
+      Name: TG-Private-Instances
       Port: 80
       Protocol: HTTP
       VpcId: !Ref MyVPC
