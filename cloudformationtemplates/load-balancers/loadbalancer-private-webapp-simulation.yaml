@@ -5,10 +5,10 @@ Description: AWS CFT for - Creating VPC, NAT Gateway, EIP, Public & Private Subn
 
 # Parameters for VPC configuration, instance settings, and resource tagging
 Parameters:
-  myTag:
+  Application:
     Description: Tag for all resources
     Type: String
-    Default: loadbalancer-simulation
+    Default: loadbalancer-private-webapp-simulation
 
   VpcCIDR:
     Description: Please enter the IP range (CIDR notation) for this VPC
@@ -58,6 +58,18 @@ Parameters:
     Type: String
     Description: Please enter the Security Group Suffix Name
     Default: sg
+  
+  DeployBastionHost:
+    Description: "Set to 'true' to deploy a Bastion Host in the public subnet."
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+
+# Conditions
+Conditions:
+  CreateBastionHost: !Equals [!Ref DeployBastionHost, "true"]
 
 Resources:
   # VPC resource
@@ -68,8 +80,8 @@ Resources:
       Tags:
         - Key: Name
           Value: MyVPC-LoadBalancer-Demo
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
 
   # Public subnet in the first availability zone
   PublicSubnet1:
@@ -82,8 +94,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Public-Subnet-AZ1-LB
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
 
   # Public subnet in the second availability zone
   PublicSubnet2:
@@ -96,8 +108,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Public-Subnet-AZ2-LB
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
 
   # Private subnet in the first availability zone
   PrivateSubnet1:
@@ -110,8 +122,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Private-Subnet-AZ1-App
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
 
   # Private subnet in the second availability zone
   PrivateSubnet2:
@@ -124,8 +136,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Private-Subnet-AZ2-App
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
   
   # Internet Gateway resource
   MyIGW:
@@ -134,8 +146,8 @@ Resources:
       Tags:
         - Key: Name
           Value: IGW-LB-Internet
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
 
   # Attach Internet Gateway to the VPC
   MyIGWAttachment:
@@ -152,8 +164,8 @@ Resources:
       Tags:
         - Key: Name
           Value: RT-Pub-LB
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
   
   # Route in Public Route Table to allow internet traffic
   MainRouteTableIGWAttachement:
@@ -172,8 +184,8 @@ Resources:
       Tags:
         - Key: Name
           Value: RT-Priv-App
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
   
   # Associate Private Subnet 1 with Private Route Table
   PrivateSubnet1RouteTableAssociation:
@@ -198,8 +210,8 @@ Resources:
       Tags:
         - Key: Name
           Value: EIP-NAT-GW
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
   
   # NAT Gateway in Public Subnet 1
   MyNatGateway:
@@ -210,8 +222,8 @@ Resources:
       Tags:
         - Key: Name
           Value: NAT-GW-Pub-1A
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
   
   # Route in Private Route Table to route traffic through NAT Gateway
   PrivateRouteAssociateNAT:
@@ -390,8 +402,8 @@ Resources:
       Tags:
         - Key: Name
           Value: SG-ALB-LB
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
 
   # Security Group for private instances
   PrivateSercuritGroup:
@@ -416,8 +428,8 @@ Resources:
       Tags:
         - Key: Name
           Value: SG-Private-Instances-App
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
   
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -435,6 +447,7 @@ Resources:
   MyBastionServer:
     Type: AWS::EC2::Instance
     DependsOn: ALBSecurityGroup
+    Condition: CreateBastionHost
     Properties:
       SubnetId: !Ref PublicSubnet1
       ImageId: !Ref AmiID
@@ -445,8 +458,8 @@ Resources:
       Tags:
         - Key: Name
           Value: bastion
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
       UserData:
         Fn::Base64: 
           !Sub |
@@ -458,7 +471,7 @@ Resources:
             echo "Hello this is from Bastion Server, i.e., Public Subnet 1" > /var/www/html/index.html
   
   # EC2 instance in private subnet 1
-  MyPrivateServer1:
+  MyWebServer1:
     Type: AWS::EC2::Instance
     DependsOn: PrivateSercuritGroup
     Properties:
@@ -470,9 +483,9 @@ Resources:
         - !Ref PrivateSercuritGroup
       Tags:
         - Key: Name
-          Value: WebServer-Priv-AZ1-App
-        - Key: myTag
-          Value: !Ref myTag
+          Value: WebServer-1-Priv-AZ1-App
+        - Key: Application
+          Value: !Ref Application
       UserData:
         Fn::Base64: 
           !Sub |
@@ -481,10 +494,36 @@ Resources:
             yum install -y httpd.x86_64
             systemctl start httpd.service
             systemctl enable httpd.service
-            echo "Hello from Private App Server 1 in Private Subnet 1" > /var/www/html/index.html
+            echo "Hello from Web Server 1 in Private Subnet 1" > /var/www/html/index.html
+  
+  # EC2 instance in private subnet 1
+  MyWebServer2:
+    Type: AWS::EC2::Instance
+    DependsOn: PrivateSercuritGroup
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      ImageId: !Ref AmiID
+      InstanceType: !Ref TypeOfInstance
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref PrivateSercuritGroup
+      Tags:
+        - Key: Name
+          Value: WebServer-2-Priv-AZ1-App
+        - Key: Application
+          Value: !Ref Application
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd.x86_64
+            systemctl start httpd.service
+            systemctl enable httpd.service
+            echo "Hello from Web Server 2 in Private Subnet 1" > /var/www/html/index.html
   
   # EC2 instance in private subnet 2
-  MyPrivateServer2:
+  MyWebServer3:
     Type: AWS::EC2::Instance
     DependsOn: PrivateSercuritGroup
     Properties:
@@ -496,9 +535,9 @@ Resources:
         - !Ref PrivateSercuritGroup
       Tags:
         - Key: Name
-          Value: WebServer-Priv-AZ2-App
-        - Key: myTag
-          Value: !Ref myTag
+          Value: WebServer-3-Priv-AZ2-App
+        - Key: Application
+          Value: !Ref Application
       UserData:
         Fn::Base64: 
           !Sub |
@@ -507,7 +546,7 @@ Resources:
             yum install -y httpd.x86_64
             systemctl start httpd.service
             systemctl enable httpd.service
-            echo "Hello from Private App Server 2 in Private Subnet 2" > /var/www/html/index.html
+            echo "Hello from Web Server 3 in Private Subnet 2" > /var/www/html/index.html
   
   # Application Load Balancer
   MyALB:
@@ -524,8 +563,8 @@ Resources:
       Tags:
         - Key: Name
           Value: ALB-LoadBalancer
-        - Key: myTag
-          Value: !Ref myTag
+        - Key: Application
+          Value: !Ref Application
 
   # Target Group for Private Servers
   MyTargetGroup:
@@ -539,9 +578,11 @@ Resources:
       HealthCheckPort: 80
       HealthCheckProtocol: HTTP
       Targets:
-        - Id: !Ref MyPrivateServer1
+        - Id: !Ref MyWebServer1
           Port: 80
-        - Id: !Ref MyPrivateServer2
+        - Id: !Ref MyWebServer2
+          Port: 80
+        - Id: !Ref MyWebServer3
           Port: 80
 
   # Listener for ALB
