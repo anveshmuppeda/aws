@@ -1,7 +1,6 @@
 # Author : Anvesh Muppeda  
-
 AWSTemplateFormatVersion: 2010-09-09
-Description: This AWS CloudFormation Template (CFT) creates a practical example of VPC Peering between two VPCs (Virtual Private Clouds). Each VPC hosts an EC2 instance, and the template configures the necessary networking components (subnets, route tables, security groups, etc.) to allow communication between the instances using their private IPs. The setup also includes internet access for both VPCs via Internet Gateways (IGWs).
+Description: This AWS CloudFormation Template (CFT) creates a practical example of a VPC Transit Gateway setup. It provisions two VPCs with public subnets, internet gateways, and a transit gateway to enable communication between them.
 
 # Parameters for VPC configuration, instance settings, and resource tagging
 Parameters:
@@ -62,7 +61,7 @@ Parameters:
       - "true"
       - "false"
 
-# Conditions
+# Condition to determine if the Transit Gateway should be created
 Conditions:
   CreateTransitGateway: !Equals [!Ref DeployTransitGateway, "true"]
 
@@ -411,7 +410,7 @@ Resources:
         - Key: Name
           Value: My-TransitGateway-Demo1
   
-  # for VPC1 TransitGatewayAttachment
+  # Transit Gateway attachment for VPC1
   VPC1TransitGatewayAttachment:
     Type: AWS::EC2::TransitGatewayAttachment
     Condition: CreateTransitGateway
@@ -424,7 +423,7 @@ Resources:
         - Key: Name
           Value: TransitGateway-Attachment-VPC1
 
-  # for VPC2 TransitGatewayAttachment
+  # Transit Gateway attachment for VPC2
   VPC2TransitGatewayAttachment:
     Type: AWS::EC2::TransitGatewayAttachment
     Condition: CreateTransitGateway
@@ -440,7 +439,7 @@ Resources:
   ##############################################################################################
   #                                 Adding Routes Cross VPC's                                  #
   ##############################################################################################
-  # Route in VPC2 Route Table to allow traffic from VPC 1
+  # Route in VPC1 Route Table to allow traffic from VPC 2 via Transit Gateway
   VPC1RouteTableVPCTransitAttachement:
     Type: AWS::EC2::Route
     DependsOn: VPC1TransitGatewayAttachment
@@ -450,7 +449,7 @@ Resources:
       DestinationCidrBlock: !Ref Vpc2CIDR
       TransitGatewayId: !Ref DemoTransitGateway
 
-  # Route in VPC2 Route Table to allow traffic from VPC 1
+  # Route in VPC2 Route Table to allow traffic from VPC1 via Transit Gateway
   VPC2RouteTableVPCTransitAttachement:
     Type: AWS::EC2::Route
     DependsOn: VPC2TransitGatewayAttachment

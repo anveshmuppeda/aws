@@ -1,5 +1,4 @@
 # Author : Anvesh Muppeda  
-
 AWSTemplateFormatVersion: 2010-09-09
 Description: This AWS CloudFormation Template (CFT) creates a practical example of VPC Peering between two VPCs (Virtual Private Clouds). Each VPC hosts an EC2 instance, and the template configures the necessary networking components (subnets, route tables, security groups, etc.) to allow communication between the instances using their private IPs. The setup also includes internet access for both VPCs via Internet Gateways (IGWs).
 
@@ -193,7 +192,7 @@ Resources:
         - Key: Application
           Value: !Ref Application
   
-  # VPC 1 Server
+  # Launch an EC2 instance in VPC1
   MyVPC1Server:
     Type: AWS::EC2::Instance
     DependsOn: VPC1SecurityGroup
@@ -357,7 +356,7 @@ Resources:
         - Key: Application
           Value: !Ref Application
 
-  # VPC2 Server
+  # Launch an EC2 instance in VPC2
   MyVPC2Server:
     Type: AWS::EC2::Instance
     DependsOn: VPC2SecurityGroup
@@ -400,7 +399,7 @@ Resources:
   ##############################################################################################
   #                                 Adding Routes Cross VPC's                                  #
   ##############################################################################################
-  # Route in VPC2 Route Table to allow traffic from VPC 1
+  # Add a route in VPC1's route table to allow traffic to VPC2 via the VPC Peering Connection
   VPC1RouteTableVPCPeerAttachement:
     Type: AWS::EC2::Route
     DependsOn: VPCPeeringConnection
@@ -409,7 +408,7 @@ Resources:
       DestinationCidrBlock: !Ref Vpc2CIDR
       GatewayId: !Ref VPCPeeringConnection
 
-  # Route in VPC2 Route Table to allow traffic from VPC 1
+  # Add a route in VPC2's route table to allow traffic to VPC1 via the VPC Peering Connection
   VPC2RouteTableVPCPeerAttachement:
     Type: AWS::EC2::Route
     DependsOn: VPCPeeringConnection
@@ -419,7 +418,7 @@ Resources:
       GatewayId: !Ref VPCPeeringConnection
 
 
-# Outputs for VPC, Load Balancer DNS
+# Outputs for VPC
 Outputs:
   Vpc1Id:
     Description: VPC ID of the newly created VPC
