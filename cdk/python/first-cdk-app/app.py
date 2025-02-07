@@ -6,6 +6,7 @@ from first_cdk_app.first_cdk_app_stack import FirstCdkAppStack
 
 
 app = cdk.App()
-FirstCdkAppStack(app, "FirstCdkAppStack")
+FirstCdkAppStack(app, "FirstCdkAppStack" #This is the stack name
+)
 
 app.synth()
