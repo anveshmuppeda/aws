@@ -14,4 +14,4 @@ Policies: JSON documents that define permissions. These can be managed (AWS prov
 For more detailed definitions, refer to the AWS IAM Documentation.
 
 
-Full Blog: [☁︎ AWS IAM Complete Hands-On Guide 🔒] (https://medium.com/@muppedaanvesh/%EF%B8%8E-aws-iam-complete-hands-on-guide-378010443cf3)
+Full Blog: [☁︎ AWS IAM Complete Hands-On Guide 🔒](https://medium.com/@muppedaanvesh/%EF%B8%8E-aws-iam-complete-hands-on-guide-378010443cf3)
