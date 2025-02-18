@@ -74,9 +74,12 @@ class HelloWorldL1Stack(Stack):
             rest_api_id=restapi.ref
         )
 
+        # Ensures method exists before deployment
+        deployment.add_dependency(hello_method)
+
         stage = apigateway.CfnStage(
             self, "Stage",
             rest_api_id=restapi.ref,
             deployment_id=deployment.ref,
-            stage_name="dev"
+            stage_name="prod"
         )
