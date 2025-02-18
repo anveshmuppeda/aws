@@ -28,7 +28,7 @@ class HelloWorldL1Stack(Stack):
 
         restapi = apigateway.CfnRestApi(self, "MyRestAPI",
             name="HelloWorldRestApiL1",
-            description="Hello World Rest API",
+            description="Rest API for Hello World Lambda Func L1",
             endpoint_configuration=apigateway.CfnRestApi.EndpointConfigurationProperty(
                 types=["REGIONAL"]
             )

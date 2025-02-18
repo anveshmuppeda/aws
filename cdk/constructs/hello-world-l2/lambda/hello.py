@@ -7,5 +7,5 @@ def lambda_handler(event, context):
         'headers': {
             'Content-Type': 'text/plain'
         },
-        'body': 'Hello, from Lambda L1 Construct! You have hit {}\n'.format(event['path'])
+        'body': 'Hello, from Lambda L2 Construct! You have hit {}\n'.format(event['path'])
     }
