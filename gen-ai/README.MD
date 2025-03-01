@@ -78,5 +78,51 @@ In short:
 - **All LLMs are Foundation Models** because they’re built on large datasets.
 - **Not all Foundation Models are LLMs** — some create images (DALL·E) or audio (Whisper) instead of text.
 
-Let me know if you want me to dive deeper into any section or simplify it even further!
+---  
 
+# Amazon Bedrock
+
+## What is Amazon Bedrock?
+- **Amazon Bedrock** helps you build **Generative AI (Gen-AI)** applications on **AWS**.
+- It’s a **fully-managed service** — no need to set up or manage servers.
+- You stay in **control of your data** — your data isn’t used to train the foundation models.
+- **Pay-per-use** — you only pay for what you use.
+- Provides **unified APIs** — simple access to multiple AI models.
+- Comes with ready-to-use features like:
+  - **RAG** (Retrieval-Augmented Generation) — pulls in real-time data to enhance AI responses.
+  - **LLM Agents** — AI agents that can perform tasks and solve problems.
+- Built-in support for **Security, Privacy, Governance,** and **Responsible AI** practices.
+
+---
+
+## Foundation Models in Amazon Bedrock
+- You get access to a variety of **Foundation Models (FMs)** from different providers.
+- Amazon Bedrock makes a **private copy** of the FM just for you, so you can **fine-tune** it with your own data.
+- **Your data stays private** — it’s not used to train the original foundation models.
+
+---
+
+## Choosing the Right Foundation Model
+When picking a model, consider:
+- **Model types** — text, images, or both (multimodal models).
+- **Performance needs** — speed, accuracy.
+- **Customization** — how much you want to fine-tune.
+- **Model size** — larger models might be more powerful but cost more.
+- **Inference options** — how the AI generates results.
+- **Compliance** — if you need specific security or privacy standards.
+- **Context windows** — how much information the model can process at once.
+- **Latency** — how fast the model responds.
+
+---
+
+## Amazon Titan
+- **Amazon Titan** is AWS’s own set of **high-performing Foundation Models**.
+- Offers models for:
+  - **Text generation**
+  - **Image generation**
+  - **Multimodal tasks** (using both text and images)
+- **Fully-managed APIs** — simple to use.
+- Can be **customized with your data** to better fit your needs.
+- **Smaller models** are available too — they are more cost-effective and faster for simpler tasks.
+
+---
