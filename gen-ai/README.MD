@@ -222,3 +222,180 @@ You train the model by giving it lots of these pairs so it learns how to respond
 
 ---
 
+### 1. **Automatic Evaluation**
+
+- **What It Is:**  
+  The system automatically tests your AI model without needing humans to review every output.
+
+- **How It Works:**  
+  - **Built-In Task Types:**  
+    It comes with pre-defined tasks like:
+    - **Text Summarization:** Condensing long pieces of text.
+    - **Question & Answer:** Responding to questions.
+    - **Text Classification:** Sorting text into categories.
+    - **Open-Ended Text Generation:** Producing creative or varied text.
+    
+  - **Datasets:**  
+    You can either provide your own dataset of prompts or use one that Amazon Bedrock offers. These datasets are collections of examples that help measure how well the model performs.
+
+- **Outcome:**  
+  The system then automatically calculates scores using various metrics (which we’ll detail later) to check for quality control.
+
+---
+
+### 2. **Benchmark Datasets**
+
+- **What They Are:**  
+  These are specially curated sets of data designed to test different aspects of language models.
+
+- **Why They’re Important:**  
+  - They cover a wide range of topics, complexity levels, and language phenomena.
+  - They help measure key aspects like accuracy, speed, and efficiency.
+  - Some benchmark datasets are designed to quickly highlight if a model might be biased or discriminatory.
+
+- **Customization:**  
+  You can also create your own benchmark dataset that is tailored to your specific business needs.
+
+---
+
+### 3. **Human Evaluation**
+
+- **What It Is:**  
+  Instead of relying solely on automatic scores, real people evaluate the model’s outputs.
+
+- **Who Can Evaluate:**  
+  - Your company’s employees.
+  - Subject-Matter Experts (SMEs) who understand the context.
+  
+- **How It’s Done:**  
+  - **Define Metrics:** You decide what makes an output “good” (e.g., clarity, correctness).
+  - **Evaluation Methods:** This can be as simple as giving a thumbs up or down, ranking outputs, or using more detailed criteria.
+  - **Task Types:** You can choose the same built-in tasks as automatic evaluation, or even create a custom task if needed.
+
+---
+
+### 4. **Automated Metrics**
+
+These metrics are calculated by the system to quantify how well the model performs:
+
+- **ROUGE:**  
+  - **Purpose:** Mainly for summarization or translation.
+  - **How It Works:**  
+    - **ROUGE-N:** Counts matching groups of words (n-grams) between the generated text and a reference text.
+    - **ROUGE-L:** Looks for the longest sequence of words that appears in both texts.
+
+- **BLEU:**  
+  - **Purpose:** Typically used to evaluate translation quality.
+  - **How It Works:**  
+    - It compares the generated text with one or more reference texts, considering both the number of matching words and whether the text is too short.
+
+- **BERTScore:**  
+  - **Purpose:** Evaluates semantic similarity.
+  - **How It Works:**  
+    - Uses a pre-trained BERT model to generate vector representations (embeddings) for both texts and then compares them using cosine similarity, capturing nuances beyond just word matching.
+
+- **Perplexity:**  
+  - **Purpose:** Measures how well the model predicts the next word in a sentence.
+  - **How It Works:**  
+    - Lower perplexity indicates that the model is better at predicting what comes next, which usually means better language understanding.
+
+---
+
+### 5. **Business Metrics**
+
+In addition to technical performance, models are also evaluated on how they impact your business. Key business metrics include:
+
+- **User Satisfaction:**  
+  - **What It Measures:**  
+    - How happy your users are with the model’s responses (e.g., via surveys or feedback).
+
+- **Average Revenue Per User (ARPU):**  
+  - **What It Measures:**  
+    - The average income generated from each user, which helps see the financial impact of the AI app.
+
+- **Cross-Domain Performance:**  
+  - **What It Measures:**  
+    - How well the model performs across various types of tasks or industries. For example, an ecommerce platform might need the model to handle product descriptions, customer queries, and recommendations all at once.
+
+- **Conversion Rate:**  
+  - **What It Measures:**  
+    - How often the model’s output leads to a desired action (e.g., a purchase), which is critical for sales and marketing applications.
+
+- **Efficiency:**  
+  - **What It Measures:**  
+    - How efficiently the model runs in terms of computation and resource use. This could be important for reducing operational costs or improving performance on production systems.
+
+---
+
+**In Summary:**  
+Amazon Bedrock evaluates a model using two main methods: automatic evaluation with built-in datasets and tasks, and human evaluation by experts. It uses a mix of technical metrics (like ROUGE, BLEU, BERTScore, and perplexity) to measure quality, and business metrics (such as user satisfaction, ARPU, cross-domain performance, conversion rate, and efficiency) to ensure the model brings real value to your organization.
+
+
+---  
+
+### What is RAG (Retrieval-Augmented Generation)?
+
+- **RAG Explained:**  
+  RAG lets your AI model (a foundation model) look up and use information that isn't part of its original training data. Think of it as giving the model the ability to "google" for real-time data.
+
+- **How It Works:**  
+  Amazon Bedrock automatically creates "vector embeddings" (a way to represent your data numerically) from your external data and stores them in a database. When the model needs fresh or specific information, it can quickly search this database to find what it needs.
+
+---
+
+### Types of Databases for RAG (Vector Databases)
+
+These are different kinds of databases where the vector embeddings (numerical representations of your data) can be stored and searched:
+
+- **Amazon OpenSearch Service:**  
+  A search and analytics database that can handle millions of embeddings, making it great for real-time similarity searches.
+
+- **Amazon DocumentDB (with MongoDB compatibility):**  
+  A NoSQL database that supports fast similarity queries and storing large amounts of vector data.
+
+- **Amazon Aurora:**  
+  A relational database developed by AWS, designed for high performance.
+
+- **Amazon RDS for PostgreSQL:**  
+  An open-source relational database that can also be used for similarity searches.
+
+- **Amazon Neptune:**  
+  A graph database, useful for data that is best represented as a network or relationships.
+
+---
+
+### Data Sources for RAG
+
+These are the places where your real-time or updated data can come from:
+
+- **Amazon S3:** Cloud storage for files and data.
+- **Confluence:** A collaboration tool often used for documentation.
+- **Microsoft SharePoint:** A platform for sharing and managing documents.
+- **Salesforce:** A customer relationship management tool that stores business data.
+- **Web Pages:** Your website, social media feeds, or any online content.
+- **Others:** More sources may be added over time.
+
+---
+
+### Use Cases for RAG in Amazon Bedrock
+
+By combining RAG with these external data sources, you can build powerful applications such as:
+
+- **Customer Service Chatbot:**  
+  - **Knowledge Base:** Stores product details, features, troubleshooting guides, and FAQs.
+  - **How It Helps:** The chatbot can quickly retrieve relevant information to answer customer queries accurately.
+
+- **Legal Research and Analysis:**  
+  - **Knowledge Base:** Contains laws, regulations, case precedents, and legal opinions.
+  - **How It Helps:** A legal chatbot can provide accurate and timely legal information for specific queries.
+
+- **Healthcare Question-Answering:**  
+  - **Knowledge Base:** Includes clinical guidelines, research papers, disease information, and treatment protocols.
+  - **How It Helps:** A healthcare chatbot can answer complex medical questions using up-to-date clinical data.
+
+---
+
+**In Summary:**  
+Amazon Bedrock uses RAG to let AI models tap into external, real-time data sources. It creates vector embeddings from your data and stores them in various types of databases. This setup is useful for building chatbots and other applications that need to access up-to-date information—whether for customer service, legal research, or healthcare queries.
+
+---
