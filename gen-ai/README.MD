@@ -126,3 +126,99 @@ When picking a model, consider:
 - **Smaller models** are available too — they are more cost-effective and faster for simpler tasks.
 
 ---
+
+# Fine-Tuning Models in Amazon Bedrock
+
+## What is Fine-Tuning in Amazon Bedrock?
+- **Fine-tuning** means **adapting a Foundation Model (FM)** by training it with **your own data** to make it better at specific tasks.
+- You don’t change the original model — instead, Bedrock makes a **copy just for you** and adjusts it using your data.
+
+## How Fine-Tuning Works
+1. **Training data:**
+   - Must be in a **specific format** (prompt-response pairs for instruction-based fine-tuning).
+   - Needs to be stored in **Amazon S3** (AWS’s cloud storage service).
+2. **Provisioned Throughput:**
+   - To use your fine-tuned model, you must enable **Provisioned Throughput** — a dedicated way to get consistent, fast responses from your AI.
+3. **Model compatibility:**
+   - **Not all foundation models can be fine-tuned** — you need to check which models support this.
+
+---
+
+## Types of Fine-Tuning
+
+### 1. **Instruction-based Fine-Tuning**
+- Helps a model get better at **specific tasks** by training it with **labeled data** — examples that show the correct response to a given prompt.
+- Useful when you want your AI to learn:
+  - **Industry-specific language** (like medical terms or legal jargon)
+  - A particular style or tone (e.g., friendly customer support vs. formal business writing)
+
+### Example:
+- **Prompt:** “What’s the return policy?”
+- **Response:** “You can return items within 30 days with a receipt.”
+
+You train the model by giving it lots of these pairs so it learns how to respond correctly.
+
+---
+
+### 2. **Continued Pre-Training (Domain Adaptation)**
+- Extends a model’s knowledge using **unlabeled data** — this helps the model get smarter about a particular topic.
+- Ideal for making the model an **expert in a field** by feeding it industry-specific documents.
+- Great for:
+  - Adding **specialized knowledge** (like giving it all your company’s internal guides)
+  - Keeping it **up-to-date** with new data over time
+
+### Example:
+- Feeding the AI your company’s entire **AWS documentation** so it becomes an AWS specialist.
+
+---
+
+## Messaging in Fine-Tuning
+
+### **Single-Turn Messaging**
+- Used for tasks where the AI only needs **one interaction** to respond.
+- The data format includes:
+  - **system** (optional): Background info for the AI.
+  - **messages**: A list of messages.
+    - **role**: Either “user” or “assistant.”
+    - **content**: The text for each message.
+
+### Example:
+- **User:** “What’s the weather?”
+- **Assistant:** “It’s sunny.”
+
+---
+
+### **Multi-Turn Messaging**
+- Used for **conversations** — back-and-forth exchanges between users and AI.
+- Helpful for training **chatbots** or virtual assistants.
+- Data must alternate between the **user** and **assistant** roles.
+
+### Example:
+- **User:** “What are your store hours?”
+- **Assistant:** “We are open 9 AM to 5 PM.”
+- **User:** “Are you open on weekends?”
+- **Assistant:** “Yes, from 10 AM to 4 PM.”
+
+---
+
+## Key Points About Fine-Tuning
+- **Cost:** Fine-tuning and running custom models can be expensive — you’ll need **Provisioned Throughput** for consistent performance.
+- **Simplicity:** **Instruction-based fine-tuning** is usually **cheaper** than continued pre-training since it requires less data and computing power.
+- **Expertise:** You may need **machine learning engineers** to prepare data, train, and evaluate the model.
+
+---
+
+## Transfer Learning vs. Fine-Tuning
+- **Transfer Learning** is the broader idea of using a **pre-trained model** and tweaking it for a new, related task.
+- **Fine-Tuning** is a **specific type of transfer learning** — adapting a model with new data.
+
+---
+
+## Use Cases for Fine-Tuning
+- **Chatbots with personality:** Adjust AI to match your brand’s tone — friendly, professional, or humorous.
+- **Up-to-date models:** Train the AI with the latest info — like recent company policies.
+- **Exclusive data:** Use private data (customer service logs, emails) so the AI knows your business.
+- **Specialized tasks:** Focus AI on tasks like sorting emails or verifying information.
+
+---
+
