@@ -1,9 +1,3 @@
-(Due to technical issues, the search service is temporarily unavailable.)
-
-Here's a **simplified breakdown of Amazon SageMaker** for your exam, organized for clarity and memorization:
-
----
-
 ### **1. Core SageMaker Concepts**  
 #### **What is SageMaker?**  
 - **Fully managed service** to build, train, and deploy ML models without managing servers.  
