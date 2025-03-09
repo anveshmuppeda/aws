@@ -156,4 +156,15 @@ This document provides an overview of key concepts in Generative AI, Foundation 
 - **Batch**: Up to 50% discount for bulk jobs.  
 - **Key Exam Takeaway**: Smaller models = lower costs.  
 
+
+
+### Bedrock – Cost savings  
+• On-Demand – great for unpredictable workloads, no long-term commitment
+• Batch – provides up to 50% discounts
+• Provisioned Throughput – (usually) not a cost-saving measure, great to “reserve” capacity
+• Temperature, Top K, Top P – no impact on pricing
+• Model size – usually a smaller model will be cheaper (varies based on providers)
+• Number of Input and Output Tokens – main driver of cost
+
+
 ---
