@@ -1,8 +1,4 @@
-(Due to technical issues, the search service is temporarily unavailable.)
 
-Here’s the updated document with **Key Exam Takeaways** added to each section and integration of the previous response’s content (Tokenization, Context Window, Embeddings, Guardrails, Agents, Pricing, etc.):
-
----
 
 # Generative AI  
 

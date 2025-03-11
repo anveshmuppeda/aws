@@ -24,3 +24,10 @@ GenAI Concepts – Tokenization
 • Word-based tokenization: text is split into individual words
 • Subword tokenization: some words can be split too (helpful for long words…)
 
+
+Top P represents the percentage of most likely candidates that the model considers for the next token. Choose a lower value to decrease the size of the pool and limit the options to more likely outputs. Choose a higher value to increase the size of the pool and allow the model to consider less likely outputs
+
+
+Questions Doubts:
+Supervised Unsupervised and self supervised
+
