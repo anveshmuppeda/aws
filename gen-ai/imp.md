@@ -127,8 +127,11 @@ A text-only language model
 - A text-only language model cannot handle image data because it is designed to process and generate text exclusively. This model lacks the capability to understand or incorporate visual information, making it unsuitable for a chatbot that needs to interpret both text and images in user queries.
 
 convolutional neural network (CNN):
+For Image
  A convolutional neural network (CNN) is designed specifically for image recognition and processing tasks and is highly effective for analyzing visual data. However, it cannot process text-based inputs and therefore cannot fulfill the requirement of handling multi-modal queries that include both text and images. A CNN would need to be combined with other models to process text, which adds complexity without directly addressing the multi-modal nature of the queries.
 
+RNNs
+For video analysis
 
 
 Asynchronous inference
@@ -188,6 +191,12 @@ Hyperparameter tuning:
 Hyperparameter tuning is the process of selecting the best set of hyperparameters for a machine learning model. Hyperparameters are the external configurations of the model that are set before training and cannot be learned from the data. Feature Engineering is not related to Hyperparameter tuning.
 Hyperparameter tuning is the most effective solution in this scenario because it allows the company to adjust the settings that control the learning process of the model. By fine-tuning hyperparameters, such as increasing regularization or early stopping or adjusting dropout rates, the model can avoid overfitting to the training data and better generalize to new, unseen data in production. This approach helps improve the model's performance across various data distributions.
 
+K-Means is an unsupervised learning algorithm used to partition a dataset into distinct clusters by minimizing the variance within each cluster. KNN, on the other hand, is a supervised learning algorithm that classifies new data points based on the majority class among its k-nearest neighbors in the training data.
+
+K-Means is an unsupervised learning algorithm, and KNN is a supervised learning algorithm.
+
+K-Means does not require labeled data; it is used for clustering. KNN, however, requires labeled data for classification.
+
 
 
 
@@ -213,6 +222,7 @@ Sentiment analysis
 
 Supervised learning technique
 Neural network
+Decision tree
 
 unsupervised learning technique
 Clustering
@@ -252,6 +262,15 @@ Model inference is the process of a model generating an output (response) from a
 SageMaker Model evaluation
 Model Evaluation - Model evaluation refers to assessing the performance of a machine learning model using specific metrics such as accuracy, precision, recall, or F1 score. Model evaluation does not involve exploratory tasks like calculating statistics or visualizing data; instead, it focuses on validating the effectiveness of a trained model. Therefore, this phase does not align with the company's current activities.
 Model evaluation is the process of evaluating and comparing model outputs to determine the model that is best suited for a use case.
+
+SageMaker Role Manager:
+ provides a baseline set of permissions for ML activities and personas through a catalog of prebuilt AWS Identity and Access Management (IAM) policies.
+
+Capture model information -
+ SageMaker Model Cards is a repository for model information in the Amazon SageMaker Console and helps you centralize and standardize model documentation so you can implement ML responsibly.
+
+Track model behavior -
+ SageMaker Model Dashboard gives you a comprehensive overview of deployed models and endpoints so that you can track resources and model behavior violations in one place. You can monitor model behavior in four dimensions: data quality, model quality, bias drift, and feature attribution drift.
 
 
 Diffusion Model - Diffusion models create new data by iteratively making controlled random changes to an initial data sample. They start with the original data and add subtle changes (noise), progressively making it less similar to the original. This noise is carefully controlled to ensure the generated data remains coherent and realistic. After adding noise over several iterations, the diffusion model reverses the process. Reverse denoising gradually removes the noise to produce a new data sample that resembles the original.
@@ -407,8 +426,121 @@ AWS CloudTrail - AWS CloudTrail records AWS API calls and delivers log files for
 AWS Artifact 
 AWS Artifact - AWS Artifact provides on-demand access to AWS’ compliance reports and online agreements. It is useful for obtaining compliance documentation but does not provide continuous auditing or automated evidence collection.
 
+AWS Inferentia accelerators are designed by AWS to deliver high performance at the lowest cost in Amazon EC2 for your deep learning (DL) and generative AI inference applications. The first-generation AWS Inferentia accelerator powers Amazon Elastic Compute Cloud (Amazon EC2) Inf1 instances, which deliver up to 2.3x higher throughput and up to 70% lower cost per inference than comparable Amazon EC2 instances.
+
+EC2
+AWS Trainium is the machine learning (ML) chip that AWS purpose-built for deep learning (DL) training of 100B+ parameter models. Each Amazon Elastic Compute Cloud (Amazon EC2) Trn1 instance deploys up to 16 Trainium accelerators to deliver a high-performance, low-cost solution for DL training in the cloud.
+
+Amazon Cognito -
+ is AWS’s service for user identity management, authentication, and authorization. It provides secure user sign-up/sign-in flows, manages user pools, and integrates with Amazon Lex to handle user sessions and authentication. In this scenario, Cognito would authenticate patients, assign temporary AWS credentials, and securely pass user identity data to Lex, ensuring compliance with healthcare security requirements.
 
 
+
+
+
+
+Inference is the correct term for this process. It refers to the stage where a trained machine learning model is deployed to make predictions or generate outputs based on new input data. During inference, the model uses the patterns and relationships it learned during training to provide accurate and meaningful results. In this scenario, the user sends input data to the SageMaker model, which then performs inference to generate the corresponding output or prediction.
+
+Training is the process of teaching a machine learning model to recognize patterns by adjusting its internal parameters based on a labeled dataset. During training, the model learns from data by minimizing errors and improving accuracy. However, the scenario described does not involve modifying the model’s parameters; it only involves using the trained model to make predictions, making "training" an incorrect choice.
+
+Validation is a step used to evaluate and fine-tune the model during the training process by checking its performance on a validation dataset, which is separate from the training dataset. The purpose is to optimize the model's hyperparameters and prevent overfitting. Since the scenario involves using the model to predict outcomes from new input data, rather than evaluating or fine-tuning it, "validation" is not the correct term.
+
+Testing is the final evaluation phase of a model, where its performance is assessed on an unseen test dataset after the training and validation phases are complete. It provides an unbiased estimate of the model’s generalization ability to new data. However, in the given scenario, the focus is on generating predictions from a model already trained, rather than testing its performance, so "testing" is not the correct answer.
+
+
+
+To get predictions for an entire dataset - To get predictions for an entire dataset, SageMaker batch transform deployment type is recommended.
+
+For persistent, real-time endpoints that make one prediction at a time - For persistent, real-time endpoints that make one prediction at a time, SageMaker real-time hosting services are recommended.
+
+For workloads that can tolerate cold starts - For workloads that have idle periods between traffic spikes and can tolerate cold starts, SageMaker Serverless Inference is recommended.
+
+
+
+Feature extraction involves transforming the data into a new feature space, often using techniques like Principal Component Analysis (PCA) to reduce the number of features. Feature selection, on the other hand, involves selecting a subset of the most relevant features from the original dataset, typically using methods like forward selection, backward elimination, or regularization techniques.
+
+Governance and compliance - This discipline focuses on the policies, procedures, and reporting specific to generative AI solutions.
+
+Legal and privacy - This discipline addresses regulatory, legal, and privacy requirements specific to generative AI solutions.
+
+Resilience - This discipline involves designing generative AI solutions to maintain availability and meet business SLAs.
+
+Risk management - in the Generative AI Security Scoping Matrix involves identifying potential threats to generative AI solutions and recommending mitigations. It encompasses activities like risk assessments and threat modeling, which are essential for understanding and addressing the unique risks associated with generative AI workloads.
+
+Continued Pre-training
+
+In the continued pre-training process, you provide unlabeled data to pre-train a foundation model by familiarizing it with certain types of inputs. You can provide data from specific topics to expose a model to those areas. The Continued Pre-training process will tweak the model parameters to accommodate the input data and improve its domain knowledge.
+
+For example, you can train a model with private data, such as business documents, that are not publicly available for training large language models. Additionally, you can continue to improve the model by retraining the model with more unlabeled data as it becomes available.
+
+Fine-tuning
+
+While fine-tuning a model, you provide labeled data to train a model to improve performance on specific tasks. By providing a training dataset of labeled examples, the model learns to associate what types of outputs should be generated for certain types of inputs. The model parameters are adjusted in the process and the model's performance is improved for the tasks represented by the training dataset.
+
+Zero-shot prompting
+
+Chain-of-thought prompting
+
+Prompt engineering is the practice of carefully designing prompts to efficiently tap into the capabilities of FMs. It involves the use of prompts, which are short pieces of text that guide the model to generate more accurate and relevant responses. With prompt engineering, you can improve the performance of FMs and make them more effective for a variety of applications. Prompt engineering has techniques such as zero-shot and few-shot prompting, which rapidly adapts FMs to new tasks with just a few examples, and chain-of-thought prompting, which breaks down complex reasoning into intermediate steps.
+
+Prompt engineering is not a model customization method. Therefore, both these options are incorrect.
+
+Retrieval Augmented Generation (RAG) - Retrieval Augmented Generation (RAG) allows you to customize a model’s responses when you want the model to consider new knowledge or up-to-date information. When your data changes frequently, like inventory or pricing, it’s not practical to fine-tune and update the model while it’s serving user queries. To equip the FM with up-to-date proprietary information, organizations turn to RAG, a technique that involves fetching data from company data sources and enriching the prompt with that data to deliver more relevant and accurate responses. RAG is not a model customization method.
+
+
+
+Hijacking involves manipulating an AI system to serve malicious purposes or to misbehave in unintended ways.
+
+Jailbreaking refers to bypassing the built-in restrictions and safety measures of AI systems to unlock restricted functionalities or generate prohibited content.
+
+Response B is an example of hijacking, where the AI model initially provides a useful response but then diverts to an unethical suggestion (using a cheat tool). Response D is an example of jailbreaking, where the AI is manipulated into providing information about disabling antivirus software despite the initial innocent prompt.
+
+
+
+
+
+Generative models learn the underlying patterns of data to create new, similar data, while discriminative models learn to distinguish between different classes of data. Generative models, such as GPT-3, can generate new content, whereas discriminative models are used for classification tasks. The former focuses on understanding and replicating the data distribution, while the latter focuses on decision boundaries to classify inputs.
+
+For example, discriminative models look at images - known data like pixel arrangement, line, color, and shape — and then map them to an outcome — the unknown factor. Mathematically, these models work by identifying equations that could numerically map unknown and known factors as x and y variables.
+
+Generative models take this one step further. Instead of predicting a label given some features, they try to predict features given a certain label. Mathematically, generative modeling calculates the probability of x and y occurring together. It learns the distribution of different data features and their relationships. For example, generative models analyze animal images to record variables like different ear shapes, eye shapes, tail features, and skin patterns. They learn features and their relations to understand what different animals look like in general. They can then recreate new animal images that were not in the training set.
+
+
+
+Generative AI powered summarization chatbot
+
+Generative AI powered summarization chatbot leverages large language models to generate concise summaries of text. With prompt engineering, the summarization chatbot can be specifically tailored to accurately extract detailed key points, entities, or legal clauses from complex legal documents.
+
+Amazon Comprehend
+
+Amazon Comprehend is an effective choice because it is specifically designed to process large volumes of unstructured text data, such as legal documents, and extract key entities, phrases, and insights. It uses machine learning to accurately identify and extract relevant information, like names, dates, and specific legal clauses, making it well-suited for the law firm’s needs. The service can be integrated with other AWS tools to automate and scale the document review process, thereby enhancing efficiency.
+
+Amazon Textract
+
+Amazon Textract is also a suitable choice because it is designed to extract structured data from scanned documents, such as PDFs or images, which is common in legal settings. Textract can identify key fields, like dates, names, and amounts, and extract them into a structured format. This makes it particularly useful for handling large volumes of physical or scanned documents where the information is not readily accessible as text. Combined with NLP tools like Amazon Comprehend, Textract can provide a comprehensive solution for extracting both structured and unstructured information from legal documents.
+
+Incorrect options:
+
+Convolutional Neural Network (CNN) - This option is incorrect because CNNs are designed for tasks such as image and video recognition, object detection, and similar applications involving grid-like data (such as pixels in an image). While CNNs are excellent at feature extraction and classification in images, they are not inherently designed for document parsing or extraction tasks.
+
+Amazon Personalize - Amazon Personalize is designed for building machine learning models to provide personalized recommendations, such as product or content suggestions. It does not have any built-in capabilities for text analysis or document processing, making it completely irrelevant for the law firm’s goal of extracting key points from legal documents.
+
+WaveNet - This option is incorrect because WaveNet is tailored for audio data generation, specifically for tasks such as speech synthesis and audio signal processing. It does not have the capabilities to analyze legal documents or extract key information, making it an incorrect choice for this task.
+
+
+stable Diffusion
+Stable Diffusion is a generative artificial intelligence (generative AI) model that produces unique photorealistic images from text and image prompts.
+
+
+Llama - Llama is a series of large language models trained on publicly available data. They are built on the transformer architecture, enabling them to handle input sequences of any length and produce output sequences of varying lengths. A notable feature of Llama models is their capacity to generate coherent and contextually appropriate text.
+
+Jurassic - Jurassic family of models from AI21 Labs supported use cases such as question answering, summarization, draft generation, advanced information extraction, and ideation for tasks requiring intricate reasoning and logic.
+
+Claude - Claude is Anthropic’s frontier, state-of-the-art large language model that offers important features for enterprises like advanced reasoning, vision analysis, code generation, and multilingual processing.
+
+
+
+RMSE is a metric used to measure the average magnitude of errors in a regression model's predictions. It is not appropriate for binary classification tasks because it is designed to assess continuous numeric predictions rather than categorical outcomes. Therefore, RMSE does not provide meaningful insights into the correct or incorrect outcomes in a classification context.
 
 
 
