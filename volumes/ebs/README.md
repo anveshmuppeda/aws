@@ -1,114 +1,124 @@
-**Author** : [Sandeep Allakonda](https://www.linkedin.com/in/sandeep-allakonda)
-  
 
 ---
 
-# 📦 Amazon Elastic Block Store (EBS)
+**Author**: [Sandeep Allakonda](https://www.linkedin.com/in/sandeep-allakonda)
 
 ---
 
-## 📌 1. What is Amazon EBS?
+## 📚 Table of Contents
 
-Amazon EBS is a block-level storage service designed to be used with EC2 instances. It offers **persistent**, **high-performance**, and **highly available** storage volumes that can be attached to EC2 instances.
-
-**◘ Example:**  
-You launch an EC2 instance to run a database. The database needs fast, reliable storage — this is where you use an EBS volume.
+- [📦 Amazon Elastic Block Store (EBS)](#📦-amazon-elastic-block-store-ebs)
+- [📘 How to Partition, Format, and Mount an EBS Volume on EC2](#📘-how-to-partition-format-and-mount-an-ebs-volume-on-ec2)
 
 ---
 
-## 💽 2. Types of EBS Volumes
+## 📦 Amazon Elastic Block Store (EBS)
 
-| Type      | Description                         | Use Case Example                      |
-|-----------|-------------------------------------|---------------------------------------|
-| **gp3**   | General Purpose SSD (latest gen)    | Web servers, boot volumes             |
-| **gp2**   | General Purpose SSD (older)         | Legacy systems                        |
-| **io1/io2** | Provisioned IOPS SSD               | High-performance DBs (e.g., SQL)      |
-| **st1**   | Throughput Optimized HDD            | Big data, log processing              |
-| **sc1**   | Cold HDD                            | Archiving, infrequently accessed data |
+### 📌 1. What is Amazon EBS?
 
-**◘ Examples:**  
-• High-traffic MySQL database → use **io2**  
-• Storing daily logs for analysis → use **st1**
+Amazon EBS is a **block-level storage** service designed for EC2 instances. It provides:
 
----
+- **Persistent**
+- **High-performance**
+- **Highly available**
 
-## ♦ EBS Features
+storage volumes.
 
-### • Encryption:
-- Encrypts data **at rest**, **in transit**, and **in snapshots**
-- Managed using **AWS KMS**
-
-### • Resize Without Downtime:
-- Increase volume size
-- Change volume type or IOPS
+**🔸 Example:**  
+Launching a database server? Use EBS for fast, durable disk storage.
 
 ---
 
-## ⚡ Performance Notes:
+### 💽 2. Types of EBS Volumes
 
-- **gp3**: Default **125 MB/s**, **3,000 IOPS** (can provision more)
-- **io2**: Up to **64,000 IOPS per volume**
-- **st1/sc1**: Designed for **throughput**, not IOPS
+| Type       | Description                          | Use Case                          |
+|------------|--------------------------------------|-----------------------------------|
+| **gp3**    | General Purpose SSD (latest gen)     | Boot volumes, web servers         |
+| **gp2**    | General Purpose SSD (older gen)      | Legacy workloads                  |
+| **io1/io2**| Provisioned IOPS SSD                 | High-performance databases (SQL)  |
+| **st1**    | Throughput Optimized HDD             | Big data, log processing          |
+| **sc1**    | Cold HDD                             | Archiving, infrequent access      |
 
----
-
-# 🛠️ Step-by-Step: Adding & Mounting EBS Volume on Ubuntu EC2
-
----
-
-## 🔹 Step 1: Create an EBS Volume
-
-1. **Log in** to AWS Console.
-2. **Navigate to EC2 Dashboard.**
-3. Go to **Volumes** (under *Elastic Block Store*).
-4. Click **Create Volume**.
-   - Choose **Size**, **Type**, and **Availability Zone** (must match the EC2 instance's AZ).
-5. Click **Create Volume**.
+**🔹 Examples:**  
+- High-performance DB → use **io2**  
+- Daily logs or big data → use **st1**
 
 ---
 
-## 🔹 Step 2: Attach the Volume to EC2
+### 🧩 Key EBS Features
 
-1. In **Volumes**, select the created volume.
-2. Click **Actions → Attach Volume**.
-3. Select the instance and set **device name** (e.g., `/dev/xvdf`).
-4. Click **Attach**.
+#### 🔐 Encryption
+- Encryption **at rest**, **in transit**, and in **snapshots**
+- Managed via **AWS KMS**
+
+#### 📈 Resize Without Downtime
+- Increase size
+- Modify type or IOPS  
+*(No need to stop the instance!)*
 
 ---
 
-## 🔹 Step 3: Connect to EC2 Instance via SSH
+### ⚡ Performance Notes
 
-Use SSH to connect to your EC2 instance.
+- **gp3**: 125 MB/s & 3,000 IOPS (default, can be provisioned higher)
+- **io2**: Up to 64,000 IOPS per volume
+- **st1/sc1**: Focused on **throughput**, not IOPS
 
-To verify the attached device:
+---
+
+## 🛠️ Step-by-Step: Add & Mount EBS on Ubuntu EC2
+
+---
+
+### 🔹 Step 1: Create an EBS Volume
+
+1. Log in to AWS Console
+2. Go to **EC2 Dashboard → Volumes**
+3. Click **Create Volume**
+   - Choose **Size**, **Type**, **Availability Zone**
+4. Click **Create Volume**
+
+---
+
+### 🔹 Step 2: Attach the Volume
+
+1. Select the volume → **Actions → Attach Volume**
+2. Pick your instance
+3. Set a device name (e.g., `/dev/xvdf`)
+4. Click **Attach**
+
+---
+
+### 🔹 Step 3: Connect via SSH
 
 ```bash
+ssh -i your-key.pem ec2-user@your-ec2-ip
 lsblk
 ```
 
 ---
 
-## 🔹 Step 4: Format and Mount the EBS Volume
+### 🔹 Step 4: Format & Mount the Volume
 
-### ✅ Check If It Has a Filesystem
+#### ✅ Check for existing filesystem
 
 ```bash
 sudo file -s /dev/xvdf
 ```
 
-If unformatted, format it:
+#### ✅ Format (if empty)
 
 ```bash
 sudo mkfs -t ext4 /dev/xvdf
 ```
 
-### ✅ Create a Mount Point
+#### ✅ Create mount point
 
 ```bash
 sudo mkdir /mnt/ebs-volume
 ```
 
-### ✅ Mount the Volume
+#### ✅ Mount the volume
 
 ```bash
 sudo mount /dev/xvdf /mnt/ebs-volume
@@ -116,42 +126,130 @@ sudo mount /dev/xvdf /mnt/ebs-volume
 
 ---
 
-## 🔹 Step 5: Make Mount Permanent
+### 🔹 Step 5: Make Mount Persistent
 
-### ✅ Get the UUID of the Volume
+#### ✅ Get UUID
 
 ```bash
 sudo blkid /dev/xvdf
 ```
 
-### ✅ Edit `/etc/fstab` to Auto-Mount
+#### ✅ Edit `/etc/fstab`
 
 ```bash
 sudo nano /etc/fstab
 ```
 
-Add an entry like this (replace with your UUID):
+Add:
 
-```bash
+```fstab
 UUID=your-uuid-here  /mnt/ebs-volume  ext4  defaults,nofail  0  2
 ```
 
-Save & exit:
-
-- Press `CTRL + O`, then `Enter`
-- Press `CTRL + X` to exit
+Save and exit:
+- `CTRL + O`, `Enter`
+- `CTRL + X`
 
 ---
 
-## 🔹 Step 6: Verify the Mount
-
-Check disk usage:
+### 🔹 Step 6: Verify
 
 ```bash
 df -h
 ```
 
-This confirms the volume is mounted correctly and available.
+---
 
---
+## 📘 How to Partition, Format & Mount an EBS Volume on EC2
 
+---
+
+### 🧠 What is EBS?
+
+Amazon EBS provides **persistent block storage** for EC2 — like a hard disk in the cloud.
+
+---
+
+### 🧩 What is a Partition?
+
+A partition divides a disk into logical units — OS, app data, backups, etc. Think of it like slices of cake 🍰.
+
+---
+
+### ✅ Step 1: Launch EC2 Instance
+
+- Choose **Amazon Linux 2** or preferred OS
+- Use **t2.micro** for testing
+- Set up networking & key pair
+
+---
+
+### ✅ Step 2: Create & Attach EBS Volume
+
+1. Go to **Volumes → Create Volume**
+2. Choose size (e.g., 10 GiB), AZ
+3. After creation → **Actions → Attach**
+4. Attach to EC2 with `/dev/xvdf`
+
+---
+
+### ✅ Step 3: Partition the Volume
+
+```bash
+sudo fdisk /dev/xvdf
+```
+
+Commands in `fdisk`:
+
+1. `m` → Help menu  
+2. `n` → New partition  
+   - `p` for primary  
+   - Partition #1 → +5G  
+3. Repeat for second partition  
+4. `w` → Save and exit
+
+Check:
+
+```bash
+lsblk
+```
+
+---
+
+### ✅ Step 4: Format the Partitions
+
+Use XFS for high performance:
+
+```bash
+sudo mkfs -t xfs /dev/xvdf1
+sudo mkfs -t xfs /dev/xvdf2
+```
+
+---
+
+### ✅ Step 5: Mount the Partitions
+
+```bash
+sudo mkdir /mnt/volume1
+sudo mkdir /mnt/volume2
+
+sudo mount /dev/xvdf1 /mnt/volume1
+sudo mount /dev/xvdf2 /mnt/volume2
+
+df -h
+```
+
+---
+
+### ✅ Summary
+
+You’ve now:
+
+- ✅ Created & attached EBS
+- ✅ Partitioned it
+- ✅ Formatted with XFS
+- ✅ Mounted to EC2
+
+This makes your EC2 setup scalable, flexible, and production-ready.
+
+---
