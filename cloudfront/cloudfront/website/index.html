@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS CloudFront Demo - Anvesh Muppeda</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1f1c2c, #928dab);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 0.2em 0;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #daa520;
+            text-shadow: 0 0 12px rgba(255, 221, 87, 0.9);
+            margin-top: 1em;
+            animation: glow 1.6s infinite alternate;
+            margin-bottom: 1.5em;
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2em 3em;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: 500px;
+            transition: transform 0.3s ease;
+        }
+
+        .content:hover {
+            transform: scale(1.02);
+        }
+
+        .version {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #87cefa;
+            text-shadow: 0 0 12px rgba(255, 221, 87, 0.9);
+            margin-top: 1em;
+            animation: glow 1.6s infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 12px rgba(255, 221, 87, 0.9);
+            }
+
+            to {
+                text-shadow: 0 0 24px rgba(255, 221, 87, 1);
+            }
+        }
+
+        .footer {
+            margin-top: 2em;
+            font-size: 0.95rem;
+            opacity: 0.75;
+        }
+
+        @media (max-width: 600px) {
+            .content {
+                padding: 1.5em 2em;
+            }
+
+            h1 {
+                font-size: 2.4rem;
+            }
+
+            h2 {
+                font-size: 1.4rem;
+            }
+
+            .version {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Welcome to My Home Page</h1>
+        <h2>Sandeep Allakonda</h2>
+
+        <section class="content">
+            <p>This is a demo website for <strong>AWS CloudFront</strong>.</p>
+            <p>Currently running</p>
+            <p class="version">Version v2.0.0</p>
+            <p>Content served from <strong>Amazon S3 + CloudFront</strong></p>
+        </section>
+
+        <footer class="footer">
+            &copy; 2025 Sandeep Allakonda. All rights reserved.
+        </footer>
+    </main>
+</body>
+
+</html>

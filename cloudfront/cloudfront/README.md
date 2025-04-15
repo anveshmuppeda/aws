@@ -169,3 +169,23 @@ CloudFront clears it from cache and fetches the new version from origin.
 5. 🚀 Your site is now globally fast, secure, and efficient
 
 ---
+
+============================================================================================================================================
+
+🧠 Mastering Amazon CloudFront Cache Invalidation: A Practical Walkthrough 🔧☁️
+🧭 A Practical Guide to Understanding CloudFront Caching and Keeping Your Content Fresh 🌐
+
+Amazon CloudFront speeds up content delivery by caching files at edge locations. But when you update a file at the origin, CloudFront might still serve the old version. That's where cache invalidation comes in - it clears outdated files so users always get the latest content. In this blog, I'll walk you through setting up CloudFront and using cache invalidation step by step.
+
+🧭 What We'll Cover
+Setting up a simple website using an S3 bucket
+Creating a CloudFront distribution
+Testing the caching behavior
+Performing cache invalidation to update content
+
+Step 1: Setting up a simple website and Upload it to the S3 bucket.
+To get started, I built a simple website with just one index.html file. Here's how you can create it:
+
+Create an index.html file and add the following content:
+
+
