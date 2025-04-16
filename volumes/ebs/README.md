@@ -8,7 +8,7 @@
 ## 📚 Table of Contents
 
 - [Amazon Elastic Block Store (EBS)](#amazon-elastic-block-store-ebs)
-- [How to Partition, Format, and Mount an EBS Volume on EC2](#how-to-partition,-format-and-mount-an-ebs-volume-on-ec2)
+- [How to Partition Format and Mount an EBS Volume on EC2](#how-to-partition-format-and-mount-an-ebs-volume-on-ec2)
 
 ---
 
@@ -160,7 +160,7 @@ df -h
 
 ---
 
-## How to Partition, Format & Mount an EBS Volume on EC2
+## How to Partition Format & Mount an EBS Volume on EC2
 
 ---
 
