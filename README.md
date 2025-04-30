@@ -1,3 +1,63 @@
+<div align="center"> 
+  <h1>🚀 AWS Complete Hands‑On Guides 🌟</h1>
+  
+  <a href="https://github.com/anveshmuppeda/aws">
+    <img src="https://readme-typing-svg.demolab.com?font=italic&weight=700&size=18&duration=4000&pause=1500&color=FF9900&center=true&width=600&lines=Learn+AWS+with+hands-on+guides+and+real+projects." alt="Typing SVG" />
+  </a>  
+
+  <br/>
+
+  <!-- GitHub Repo Shields -->
+  <img src="https://img.shields.io/github/forks/anveshmuppeda/aws" alt="Forks"/>
+  <img src="https://img.shields.io/github/stars/anveshmuppeda/aws" alt="Stars"/>
+  <img src="https://img.shields.io/github/watchers/anveshmuppeda/aws" alt="Watchers"/>
+  <img src="https://img.shields.io/github/last-commit/anveshmuppeda/aws" alt="Last Commit"/>
+  <img src="https://img.shields.io/github/commit-activity/m/anveshmuppeda/aws" alt="Commit Activity"/>
+  <img src="https://img.shields.io/github/repo-size/anveshmuppeda/aws" alt="Repo Size"/>
+  <img src="https://img.shields.io/static/v1?label=🌟&message=If%20Useful&style=flat&color=BC4E99" alt="Star Badge"/>
+
+  <img src="https://awesome.re/badge.svg" alt="Awesome"/>
+  <a href="https://github.com/anveshmuppeda/aws/graphs/contributors">
+    <img src="https://img.shields.io/github/contributors/anveshmuppeda/aws" alt="GitHub contributors"/>
+  </a>
+  <a href="https://github.com/anveshmuppeda/aws/issues">
+    <img src="https://img.shields.io/github/issues/anveshmuppeda/aws" alt="Open Issues"/>
+  </a>
+  <a href="https://github.com/anveshmuppeda/aws/pulls">
+    <img src="https://img.shields.io/github/issues-pr-raw/anveshmuppeda/aws" alt="Open PRs"/>
+  </a>
+  <a href="https://github.com/anveshmuppeda/aws/pulls">
+    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs Welcome"/>
+  </a>
+</div>
+
+---
+
+<div align="center">
+  <h2><b>Author: <a href="https://github.com/anveshmuppeda">Anvesh Muppeda</a> 
+    <img src="https://avatars.githubusercontent.com/u/115966808?v=4&s=20" alt="Profile Pic"/></b>
+  </h2>
+  <p><i>Cloud Engineer | Kubernetes Developer | Open Source Contributor</i></p>
+
+  <!-- Social Media Badges -->
+  <a href="https://www.linkedin.com/in/anveshmuppeda/">
+    <img src="https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin&style=flat" alt="LinkedIn"/>
+  </a>
+  <a href="https://twitter.com/Anvesh66743877">
+    <img src="https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter&style=flat" alt="Twitter"/>
+  </a>
+  <a href="https://medium.com/@muppedaanvesh">
+    <img src="https://img.shields.io/badge/Medium-Blog-black?logo=medium&style=flat" alt="Medium"/>
+  </a>
+  <a href="mailto:muppedaanvesh@gmail.com">
+    <img src="https://img.shields.io/badge/Email-Contact%20Me-red?logo=gmail&style=flat" alt="Email"/>
+  </a>
+  <a href="https://hub.docker.com/u/anvesh35">
+    <img src="https://img.shields.io/badge/DockerHub-Profile-blue?logo=docker&style=flat" alt="DockerHub"/>
+  </a>
+</div>
+ 
+---
 # AWS Hands-On Labs Repository
 
 Welcome to the AWS Hands-On Labs Repository – a one-stop resource for learning, exploring, and mastering AWS services through practical, step-by-step labs and CloudFormation guides. This repository is built to serve everyone—from beginners to seasoned professionals—by providing clear, easy-to-follow examples that cover a wide range of AWS services and infrastructure-as-code tools.
