@@ -14,7 +14,8 @@
   <img src="https://img.shields.io/github/last-commit/anveshmuppeda/aws" alt="Last Commit"/>
   <img src="https://img.shields.io/github/commit-activity/m/anveshmuppeda/aws" alt="Commit Activity"/>
   <img src="https://img.shields.io/github/repo-size/anveshmuppeda/aws" alt="Repo Size"/>
-  <img src="https://img.shields.io/static/v1?label=🌟&message=If%20Useful&style=flat&color=BC4E99" alt="Star Badge"/>
+  <img src="https://img.shields.io/static/v1?label=Support&message=If%20Useful&style=flat&color=BC4E99" alt="Support Badge"/>
+
 
   <img src="https://awesome.re/badge.svg" alt="Awesome"/>
   <a href="https://github.com/anveshmuppeda/aws/graphs/contributors">
