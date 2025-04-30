@@ -57,7 +57,7 @@
     <img src="https://img.shields.io/badge/DockerHub-Profile-blue?logo=docker&style=flat" alt="DockerHub"/>
   </a>
 </div>
- 
+
 ---
 # AWS Hands-On Labs Repository
 
@@ -72,6 +72,8 @@ Welcome to the AWS Hands-On Labs Repository – a one-stop resource for learning
   - [cdk8s](#cdk8s)
   - [CloudFormation Templates and Guides](#cloudformation-templates-and-guides)
   - [Additional Services and Projects](#additional-services-and-projects)
+- [AWS Interview Questions](#awsinterviewquestions)
+- [My Blogs On AWS](#my-blogs-on-aws)
 - [How to Use This Repository](#how-to-use-this-repository)
 - [Contribution Guidelines](#contribution-guidelines)
 - [Roadmap](#roadmap)
