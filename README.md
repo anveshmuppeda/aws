@@ -140,6 +140,11 @@ Each main folder is self-contained, with a `README.md` that offers context, inst
 - **Projects Folder:** Explore sample projects that integrate various AWS services. Whether you prefer Node.js, Python, or serverless architectures, you will find hands-on samples that demonstrate real-world scenarios.
 - **Documentation and Classes:** The `docs` folder includes additional resources such as class slides, diagrams, and diagrams to supplement your learning.
 
+
+## Interview Questions
+[click here](./qa/README.md)
+
+
 ## How to Use This Repository
 
 1. **Browse the Directory:** Start by navigating to the directory that matches your interest (e.g., CDK labs, CloudFormation templates).
