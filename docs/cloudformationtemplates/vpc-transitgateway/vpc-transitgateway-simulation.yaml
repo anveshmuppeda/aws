@@ -1,0 +1,469 @@
+# Author : Anvesh Muppeda  
+AWSTemplateFormatVersion: 2010-09-09
+Description: This AWS CloudFormation Template (CFT) creates a practical example of a VPC Transit Gateway setup. It provisions two VPCs with public subnets, internet gateways, and a transit gateway to enable communication between them.
+
+# Parameters for VPC configuration, instance settings, and resource tagging
+Parameters:
+  Application:
+    Description: Tag for all resources
+    Type: String
+    Default: vpc-peering-simulation
+
+  Vpc1CIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.1.0.0/16
+  
+  Vpc2CIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.2.0.0/16
+  
+  VPC1SubnetCIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
+    Type: String
+    Default: 10.1.1.0/24
+  
+  VPC2SubnetCIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
+    Type: String
+    Default: 10.2.1.0/24
+
+  TypeOfInstance:
+    Description: "Specify the Instance Type."
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+
+  AmiID:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Description: "The ID of the AMI."
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  KeyPairName:
+    Type: String
+    Description: The name of an existing Amazon EC2 key pair in this region to use to SSH into the Amazon EC2 instances.
+    Default: Win-Key
+  
+  SecurityGroupSuffix:
+    Type: String
+    Description: Please enter the Security Group Suffix Name
+    Default: sg
+  
+  DeployTransitGateway:
+    Description: "Set to 'true' to deploy a Bastion Host in the public subnet."
+    Type: String
+    Default: "true"
+    AllowedValues:
+      - "true"
+      - "false"
+
+# Condition to determine if the Transit Gateway should be created
+Conditions:
+  CreateTransitGateway: !Equals [!Ref DeployTransitGateway, "true"]
+
+Resources:
+  ##############################################################################################
+  #                                 VPC1 resources                                             #
+  ##############################################################################################
+  MyVPC1:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref Vpc1CIDR
+      Tags:
+        - Key: Name
+          Value: My-First-VPC
+        - Key: Application
+          Value: !Ref Application
+
+  # Public subnet in the first availability zone
+  VPC1Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC1
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref VPC1SubnetCIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: VPC1-Subnet
+        - Key: Application
+          Value: !Ref Application
+  
+  # Internet Gateway resource
+  VPC1IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: VPC1-IGW-Internet
+        - Key: Application
+          Value: !Ref Application
+
+  # Attach Internet Gateway to the VPC
+  VPC1IGWAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref VPC1IGW
+      VpcId: !Ref MyVPC1
+
+  # Public Route Table
+  VPC1RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC1
+      Tags:
+        - Key: Name
+          Value: VPC1-RT
+        - Key: Application
+          Value: !Ref Application
+  
+  # Route in Public Route Table to allow internet traffic
+  VPC1RouteTableIGWAttachement:
+    Type: AWS::EC2::Route
+    DependsOn: VPC1IGWAttachment
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref VPC1IGW
+  
+  # Public Network ACL
+  VPC1NACL:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+       VpcId: !Ref MyVPC1
+       Tags:
+       - Key: Name
+         Value: VCP1-NACL
+  
+  VPC1NACLInboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+       NetworkAclId:
+         Ref: VPC1NACL
+       RuleNumber: 99
+       Protocol: -1
+       RuleAction: allow
+       CidrBlock: 0.0.0.0/0
+
+  VPC1NACLOutboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+       NetworkAclId:
+         Ref: VPC1NACL
+       RuleNumber: 100
+       Protocol: -1
+       Egress: true
+       RuleAction: allow
+       CidrBlock: 0.0.0.0/0
+
+  VPC1SubnetNetworkAclAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+       SubnetId:
+         Ref: VPC1Subnet
+       NetworkAclId:
+         Ref: VPC1NACL
+
+  VPC1SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable
+      SubnetId: !Ref VPC1Subnet
+
+  # Security Group for VPC1
+  VPC1SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Join ["-", [vpc1, !Ref SecurityGroupSuffix]]
+      GroupDescription: "Allow HTTP/HTTPS inbound traffic"
+      VpcId: !Ref MyVPC1
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: !Ref Vpc2CIDR
+      Tags:
+        - Key: Name
+          Value: VPC1-Public-SG
+        - Key: Application
+          Value: !Ref Application
+  
+  # VPC 1 Server
+  MyVPC1Server:
+    Type: AWS::EC2::Instance
+    DependsOn: VPC1SecurityGroup
+    Properties:
+      SubnetId: !Ref VPC1Subnet
+      ImageId: !Ref AmiID
+      InstanceType: !Ref TypeOfInstance
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref VPC1SecurityGroup
+      Tags:
+        - Key: Name
+          Value: vpc1-server
+        - Key: Application
+          Value: !Ref Application
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd.x86_64
+            systemctl start httpd.service
+            systemctl enable httpd.service
+            echo "Hello this is VPC 1" > /var/www/html/index.html
+
+  ##############################################################################################
+  #                                 VPC2 resources                                             #
+  ##############################################################################################
+  MyVPC2:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref Vpc2CIDR
+      Tags:
+        - Key: Name
+          Value: My-Second-VPC
+        - Key: Application
+          Value: !Ref Application
+  
+  # Public subnet in the first availability zone
+  VPC2Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC2
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref VPC2SubnetCIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: VPC2-Subnet
+        - Key: Application
+          Value: !Ref Application
+  
+  # Internet Gateway resource
+  VPC2IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: VPC2-IGW-vpc2-Internet
+        - Key: Application
+          Value: !Ref Application
+  
+  # Attach Internet Gateway to the VPC2
+  VPC2IGWAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref VPC2IGW
+      VpcId: !Ref MyVPC2
+  
+  # Public Route Table
+  VPC2RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC2
+      Tags:
+        - Key: Name
+          Value: VPC2-RT
+        - Key: Application
+          Value: !Ref Application
+  
+  # Route in VPC2 Route Table to allow internet traffic
+  VPC2RouteTableIGWAttachement:
+    Type: AWS::EC2::Route
+    DependsOn: VPC2IGWAttachment
+    Properties:
+      RouteTableId: !Ref VPC2RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref VPC2IGW
+
+  VPC2SubnetNetworkAclAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+       SubnetId:
+         Ref: VPC2Subnet
+       NetworkAclId:
+         Ref: VPC2NACL
+  
+  VPC2SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC2RouteTable
+      SubnetId: !Ref VPC2Subnet
+  
+  # Public Network ACL
+  VPC2NACL:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+       VpcId: !Ref MyVPC2
+       Tags:
+       - Key: Name
+         Value: VCP2-NACL
+  
+  VPC2NACLInboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+       NetworkAclId:
+         Ref: VPC2NACL
+       RuleNumber: 99
+       Protocol: -1
+       RuleAction: allow
+       CidrBlock: 0.0.0.0/0
+  
+  VPC2NACLOutboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+       NetworkAclId:
+         Ref: VPC2NACL
+       RuleNumber: 100
+       Protocol: -1
+       Egress: true
+       RuleAction: allow
+       CidrBlock: 0.0.0.0/0
+  
+  # Security Group for VPC2
+  VPC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Join ["-", [vpc2, !Ref SecurityGroupSuffix]]
+      GroupDescription: "Allow HTTP/HTTPS inbound traffic"
+      VpcId: !Ref MyVPC2
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: !Ref Vpc1CIDR
+      Tags:
+        - Key: Name
+          Value: VPC2-Public-SG
+        - Key: Application
+          Value: !Ref Application
+
+  # VPC2 Server
+  MyVPC2Server:
+    Type: AWS::EC2::Instance
+    DependsOn: VPC2SecurityGroup
+    Properties:
+      SubnetId: !Ref VPC2Subnet
+      ImageId: !Ref AmiID
+      InstanceType: !Ref TypeOfInstance
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref VPC2SecurityGroup
+      Tags:
+        - Key: Name
+          Value: vpc2-server
+        - Key: Application
+          Value: !Ref Application
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd.x86_64
+            systemctl start httpd.service
+            systemctl enable httpd.service
+            echo "Hello this is VPC 2" > /var/www/html/index.html
+
+  ##############################################################################################
+  #                                 Transit GateWay                                            #
+  ##############################################################################################
+  DemoTransitGateway:
+    Type: AWS::EC2::TransitGateway
+    Condition: CreateTransitGateway
+    Properties:
+      AutoAcceptSharedAttachments: enable
+      DefaultRouteTableAssociation: enable
+      DefaultRouteTablePropagation: enable
+      VpnEcmpSupport: enable
+      DnsSupport: enable
+      Tags:
+        - Key: Name
+          Value: My-TransitGateway-Demo1
+  
+  # Transit Gateway attachment for VPC1
+  VPC1TransitGatewayAttachment:
+    Type: AWS::EC2::TransitGatewayAttachment
+    Condition: CreateTransitGateway
+    Properties:
+      SubnetIds: 
+      - !Ref VPC1Subnet
+      TransitGatewayId: !Ref DemoTransitGateway
+      VpcId: !Ref MyVPC1
+      Tags:
+        - Key: Name
+          Value: TransitGateway-Attachment-VPC1
+
+  # Transit Gateway attachment for VPC2
+  VPC2TransitGatewayAttachment:
+    Type: AWS::EC2::TransitGatewayAttachment
+    Condition: CreateTransitGateway
+    Properties:
+      SubnetIds:
+        - !Ref VPC2Subnet
+      TransitGatewayId: !Ref DemoTransitGateway
+      VpcId: !Ref MyVPC2
+      Tags:
+        - Key: Name
+          Value: TransitGateway-Attachment-VPC
+
+  ##############################################################################################
+  #                                 Adding Routes Cross VPC's                                  #
+  ##############################################################################################
+  # Route in VPC1 Route Table to allow traffic from VPC 2 via Transit Gateway
+  VPC1RouteTableVPCTransitAttachement:
+    Type: AWS::EC2::Route
+    DependsOn: VPC1TransitGatewayAttachment
+    Condition: CreateTransitGateway
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable
+      DestinationCidrBlock: !Ref Vpc2CIDR
+      TransitGatewayId: !Ref DemoTransitGateway
+
+  # Route in VPC2 Route Table to allow traffic from VPC1 via Transit Gateway
+  VPC2RouteTableVPCTransitAttachement:
+    Type: AWS::EC2::Route
+    DependsOn: VPC2TransitGatewayAttachment
+    Condition: CreateTransitGateway
+    Properties:
+      RouteTableId: !Ref VPC2RouteTable
+      DestinationCidrBlock: !Ref Vpc1CIDR
+      TransitGatewayId: !Ref DemoTransitGateway
+
+# Outputs for VPC, Load Balancer DNS
+Outputs:
+  Vpc1Id:
+    Description: VPC ID of the newly created VPC
+    Value: !Ref MyVPC1
+  Vpc2Id:
+    Description: VPC ID of the newly created VPC
+    Value: !Ref MyVPC2

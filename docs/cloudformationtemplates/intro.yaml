@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: A sample template
+
+Parameters:
+  Application:
+    Description: Application Name
+    Type: String
+    Default: DemoApp
+
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: MyDemoVPC
+        - Key: Application
+          Value: !Ref Application
+  MyEc2instace:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-053a45fff0a704a47
+      InstanceType: t2.micro
+      Tags:
+        - Key: Name
+          Value: MyDemoServer
+        - Key: Application
+          Value: !Ref Application

@@ -1,0 +1,4 @@
+
+Resources:
+  DemoBucket:
+    Type: AWS::S3::Bucket

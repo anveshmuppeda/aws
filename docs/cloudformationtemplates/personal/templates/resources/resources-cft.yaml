@@ -1,0 +1,43 @@
+Parameters:
+  ImageId:
+    #This Parameter pulls the correct AMI ID from AWS
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  EnvType:
+    #Allows the user to choose prod or test environment
+    Description: Environment type.
+    Default: test
+    Type: String
+    AllowedValues:
+      - prod
+      - test
+    ConstraintDescription: must specify prod or test.
+
+Conditions:
+  #If this condition is true, the user has chosen a prod environment
+  CreateProdResources: !Equals [ !Ref EnvType, prod ]
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      #The AMI is pulled from the parameter above
+      ImageId: !Ref ImageId
+      InstanceType: t2.micro
+
+  NewVolume:
+    #This volume is only created in a prod environment.
+    #The CreateProdResources condition must be true or this is not created.
+    Type: AWS::EC2::Volume
+    Condition: CreateProdResources
+    Properties:
+      Size: 1
+      AvailabilityZone:
+        !GetAtt EC2Instance.AvailabilityZone
+
+Outputs:
+  VolumeId:
+    Condition: CreateProdResources
+    Value:
+      !Ref NewVolume

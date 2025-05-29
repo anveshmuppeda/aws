@@ -1,0 +1,37 @@
+Parameters:
+  EnvironmentName:
+    Description: Environment Name
+    Type: String
+    AllowedValues: [test, prod]
+    ConstraintDescription: must be test or prod
+
+Mappings:
+  EnvironmentToInstanceType:
+    # We use a small instance type for Test
+    test:
+      instanceType: t2.small
+    # we use a medium instance type for prod
+    prod:
+      instanceType: t2.medium
+  AWSRegionArch2AMI:
+    us-east-1:
+      HVM64: ami-0742b4e673072066f
+    us-east-2:
+      HVM64: ami-05d72852800cbf29e
+
+Resources:
+  WebServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      # In the line below, !Ref EnvironmentName references the parameter above (Test or Prod)
+      InstanceType: !FindInMap [EnvironmentToInstanceType, !Ref 'EnvironmentName', instanceType]
+      # ImageId uses the second mapping to find the right AMI based on the region
+      # The region is automatically detected
+      ImageId: !FindInMap [AWSRegionArch2AMI, !Ref 'AWS::Region', HVM64]
+
+Outputs:
+  Environment:
+    Description: Test or Prod?
+    Value: !Ref EnvironmentName
+    Export:
+      Name: TestOrProd
