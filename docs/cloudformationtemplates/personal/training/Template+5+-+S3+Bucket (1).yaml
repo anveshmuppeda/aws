@@ -1,8 +1,0 @@
-
-Resources:
-  DemoBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      AccessControl: PublicRead
-      VersioningConfiguration:
-        Status: Enabled

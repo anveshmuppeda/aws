@@ -1,8 +1,0 @@
-AWSTemplateFormatVersion: 2010-09-09
-Resources:
-  firstec2:
-    Type: AWS::EC2::Instance
-    Properties:
-      AvailabilityZone: us-east-2a
-      InstanceType: t2.micro
-      ImageId: ami-0a695f0d95cefc163
