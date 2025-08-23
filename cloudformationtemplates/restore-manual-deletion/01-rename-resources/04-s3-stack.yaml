@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Demo S3 Buckets CloudFormation Stack
+Resources:
+  DemoBucket1:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: anvesh-muppeda-demo-bucket1
+      AccessControl: Private
+  DemoBucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: anvesh-muppeda-demo-bucket2
+      AccessControl: Private
+  DemoBucket3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: anvesh-muppeda-demo-bucket3
+      AccessControl: Private
+Outputs:
+  BucketName1:
+    Description: Name of the demo S3 bucket 1
+    Value: !Ref DemoBucket1
+  BucketName2:
+    Description: Name of the demo S3 bucket 2
+    Value: !Ref DemoBucket2
+  BucketName3:
+    Description: Name of the demo S3 bucket 3
+    Value: !Ref DemoBucket3
+Transform: AWS::Serverless-2016-10-31
