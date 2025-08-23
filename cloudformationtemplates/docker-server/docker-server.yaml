@@ -17,7 +17,7 @@ Parameters:
   InstanceType:
     Description: "Specify the Instance Type."
     Type: String
-    Default: t2.micro
+    Default: t3.medium
     AllowedValues:
       - t2.nano
       - t2.micro
@@ -30,7 +30,7 @@ Resources:
     Properties:
       GroupName: Docker-SG
       GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
-      VpcId: vpc-02d54009ccde39c3f
+      VpcId: vpc-0905905b9d81e5d9a
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -54,7 +54,7 @@ Resources:
     Type: AWS::EC2::Instance
     DependsOn: DockerSecurityGroup
     Properties:
-      SubnetId: subnet-07c52409a81459e92
+      SubnetId: subnet-0aea3012d677f7843
       ImageId: !Ref UbuntuAmiID
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyPairName
