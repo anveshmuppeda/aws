@@ -10,7 +10,7 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: anvesh-muppeda-demo-bucket2
-      AccessControl: Private
+      #AccessControl: Private
   DemoBucket3:
     Type: AWS::S3::Bucket
     Properties:
