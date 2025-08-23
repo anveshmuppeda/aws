@@ -78,6 +78,7 @@ Resources:
             sudo apt-get update
             #If cURL is not installed, update your package manager and install it, using:
             sudo apt-get install curl
+            sudo apt  install awscli
             #Now that you have cURL, you can use it to get the latest Docker package:
             curl -fsSL https://get.docker.com/ | sh
             #Add your account to the docker group.
