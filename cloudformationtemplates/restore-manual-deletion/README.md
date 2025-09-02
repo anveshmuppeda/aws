@@ -4,6 +4,8 @@
 
 This guide demonstrates how to restore AWS resources that were manually deleted outside of CloudFormation back into stack management. When resources are deleted manually from the AWS Console, CloudFormation loses track of them, leading to deployment errors. This hands-on tutorial uses S3 buckets as an example to show the restoration process.
 
+![CloudFormation Restore Deleted Resources](./img/aws-cft-restore.png)
+
 ## Problem Scenario
 
 When a CloudFormation-managed resource is manually deleted:
