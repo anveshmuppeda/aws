@@ -10,7 +10,7 @@ We'll walk through the process of creating initial resources with CloudFormation
 
 ### Step 1: Deploy the Initial CloudFormation Stack
 
-1. Create and deploy the initial CloudFormation stack using the template `01-original-stack.yaml`
+1. Create and deploy the initial CloudFormation stack using the template [01-original-stack.yaml](./01-original-stack.yaml)
 2. This will provision two S3 buckets (`anvesh-muppeda-demo-bucket1` and `anvesh-muppeda-demo-bucket2`) under CloudFormation management
 3. Verify the stack deployment is successful and both buckets are created
 
@@ -25,7 +25,7 @@ We'll walk through the process of creating initial resources with CloudFormation
 ### Step 3: Update the CloudFormation Template
 
 1. Modify your CloudFormation template to include the manually created resource
-2. Use the updated template `02-imported-stack.yaml` which includes:
+2. Use the updated template [02-imported-stack.yaml](./02-imported-stack.yaml) which includes:
    - All existing resources (DemoBucket1 and DemoBucket2)
    - The new resource definition for DemoBucket3
    - Updated outputs section to include the new bucket
@@ -35,14 +35,14 @@ We'll walk through the process of creating initial resources with CloudFormation
 1. In the AWS CloudFormation console, locate your existing stack
 2. Select the "Stack actions" dropdown menu
 3. Choose "Import resources into stack"
-4. Upload the `02-imported-stack.yaml` template
+4. Upload the [02-imported-stack.yaml](./02-imported-stack.yaml) template
 5. Map the existing `anvesh-muppeda-demo-bucket3` resource to the `DemoBucket3` resource in your template
 6. Complete the import process by following the wizard prompts
 7. Verify that the import was successful and all three buckets are now managed by the CloudFormation stack
 
 ## Template Files
 
-### 01-original-stack.yaml
+### [01-imported-stack.yaml](./01-imported-stack.yaml)
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Demo S3 Buckets CloudFormation Stack
@@ -66,7 +66,7 @@ Outputs:
     Value: !Ref DemoBucket2
 ```
 
-### 02-imported-stack.yaml
+### [02-imported-stack.yaml](./02-imported-stack.yaml)
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Demo S3 Buckets CloudFormation Stack
