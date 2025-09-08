@@ -2,6 +2,8 @@
 
 This guide demonstrates how to import existing AWS resources (specifically S3 buckets) into a CloudFormation stack using the CloudFormation Import feature.
 
+![CloudFormation Import Resources](./img/aws-cft-restore.png)
+
 ## Overview
 
 We'll walk through the process of creating initial resources with CloudFormation, manually creating an additional resource outside of the stack, and then importing that external resource back into CloudFormation management.
