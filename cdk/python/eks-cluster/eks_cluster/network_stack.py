@@ -35,7 +35,7 @@ class NetworkStack(Stack):
             self,
             "IGWAttachment",
             vpc_id=self.vpc.vpc_id,
-            internet_gateway_id=self.igw.attr_internet_gateway_id
+            internet_gateway_id=self.igw.ref  # Fixed: Use .ref instead of .attr_internet_gateway_id
         )
         
         # Create Public Subnets
@@ -66,17 +66,20 @@ class NetworkStack(Stack):
             )
             self.private_subnets.append(subnet)
         
+        # Create EIP for NAT Gateway first
+        self.nat_eip = ec2.CfnEIP(
+            self,
+            "NATGatewayEIP",
+            domain="vpc",
+            tags=[{"key": "Name", "value": f"{app_prefix}-nat-eip"}]
+        )
+        
         # Create NAT Gateway (in first public subnet)
         self.nat_gateway = ec2.CfnNatGateway(
             self,
             "NATGateway",
-            subnet_id=self.public_subnets[0].attr_subnet_id,
-            allocation_id=ec2.CfnEIP(
-                self,
-                "NATGatewayEIP",
-                domain="vpc",
-                tags=[{"key": "Name", "value": f"{app_prefix}-nat-eip"}]
-            ).attr_allocation_id,
+            subnet_id=self.public_subnets[0].ref,  # Fixed: Use .ref instead of .attr_subnet_id
+            allocation_id=self.nat_eip.attr_allocation_id,
             tags=[{"key": "Name", "value": f"{app_prefix}-nat-gateway"}]
         )
         
@@ -93,9 +96,9 @@ class NetworkStack(Stack):
         ec2.CfnRoute(
             self,
             "PublicRoute",
-            route_table_id=self.public_route_table.attr_route_table_id,
+            route_table_id=self.public_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
             destination_cidr_block="0.0.0.0/0",
-            gateway_id=self.igw.attr_internet_gateway_id
+            gateway_id=self.igw.ref  # Fixed: Use .ref instead of .attr_internet_gateway_id
         )
         
         # Associate public subnets with public route table
@@ -103,8 +106,8 @@ class NetworkStack(Stack):
             ec2.CfnSubnetRouteTableAssociation(
                 self,
                 f"PublicSubnetRTAssoc{i+1}",
-                subnet_id=subnet.attr_subnet_id,
-                route_table_id=self.public_route_table.attr_route_table_id
+                subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
+                route_table_id=self.public_route_table.ref  # Fixed: Use .ref instead of .attr_route_table_id
             )
         
         # Private Route Table
@@ -119,9 +122,9 @@ class NetworkStack(Stack):
         ec2.CfnRoute(
             self,
             "PrivateRoute",
-            route_table_id=self.private_route_table.attr_route_table_id,
+            route_table_id=self.private_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
             destination_cidr_block="0.0.0.0/0",
-            nat_gateway_id=self.nat_gateway.attr_nat_gateway_id
+            nat_gateway_id=self.nat_gateway.ref  # Fixed: Use .ref instead of .attr_nat_gateway_id
         )
         
         # Associate private subnets with private route table
@@ -129,153 +132,170 @@ class NetworkStack(Stack):
             ec2.CfnSubnetRouteTableAssociation(
                 self,
                 f"PrivateSubnetRTAssoc{i+1}",
-                subnet_id=subnet.attr_subnet_id,
-                route_table_id=self.private_route_table.attr_route_table_id
+                subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
+                route_table_id=self.private_route_table.ref  # Fixed: Use .ref instead of .attr_route_table_id
             )
         
-        # Create NACL for Public Subnets
-        self.public_nacl = ec2.NetworkAcl(
+        # Create NACL for Public Subnets using CFN construct for consistency
+        self.public_nacl = ec2.CfnNetworkAcl(
             self,
             "PublicNACL",
-            vpc=self.vpc,
-            network_acl_name=f"{app_prefix}-public-nacl"
+            vpc_id=self.vpc.vpc_id,
+            tags=[{"key": "Name", "value": f"{app_prefix}-public-nacl"}]
         )
         
-        # Public NACL Rules - Allow common web traffic
-        # Inbound Rules
-        self.public_nacl.add_entry(
-            "AllowInboundHTTP",
+        # Public NACL Rules - Inbound Rules
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PublicNACLInboundHTTP",
+            network_acl_id=self.public_nacl.ref,
             rule_number=100,
-            cidr=ec2.AclCidr.any_ipv4(),
-            traffic=ec2.AclTraffic.tcp_port(80),
-            direction=ec2.TrafficDirection.INGRESS,
-            rule_action=ec2.Action.ALLOW
+            protocol=6,  # TCP
+            rule_action="allow",
+            cidr_block="0.0.0.0/0",
+            port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=80, to=80)
         )
         
-        self.public_nacl.add_entry(
-            "AllowInboundHTTPS", 
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PublicNACLInboundHTTPS",
+            network_acl_id=self.public_nacl.ref,
             rule_number=110,
-            cidr=ec2.AclCidr.any_ipv4(),
-            traffic=ec2.AclTraffic.tcp_port(443),
-            direction=ec2.TrafficDirection.INGRESS,
-            rule_action=ec2.Action.ALLOW
+            protocol=6,  # TCP
+            rule_action="allow",
+            cidr_block="0.0.0.0/0",
+            port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=443, to=443)
         )
         
-        self.public_nacl.add_entry(
-            "AllowInboundSSH",
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PublicNACLInboundSSH",
+            network_acl_id=self.public_nacl.ref,
             rule_number=120,
-            cidr=ec2.AclCidr.any_ipv4(),
-            traffic=ec2.AclTraffic.tcp_port(22),
-            direction=ec2.TrafficDirection.INGRESS,
-            rule_action=ec2.Action.ALLOW
+            protocol=6,  # TCP
+            rule_action="allow",
+            cidr_block="0.0.0.0/0",
+            port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=22, to=22)
         )
         
         # Allow ephemeral ports for return traffic
-        self.public_nacl.add_entry(
-            "AllowInboundEphemeral",
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PublicNACLInboundEphemeral",
+            network_acl_id=self.public_nacl.ref,
             rule_number=130,
-            cidr=ec2.AclCidr.any_ipv4(),
-            traffic=ec2.AclTraffic.tcp_port_range(1024, 65535),
-            direction=ec2.TrafficDirection.INGRESS,
-            rule_action=ec2.Action.ALLOW
+            protocol=6,  # TCP
+            rule_action="allow",
+            cidr_block="0.0.0.0/0",
+            port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=1024, to=65535)
         )
         
         # Outbound Rules - Allow all outbound traffic
-        self.public_nacl.add_entry(
-            "AllowAllOutbound",
-            rule_number=100,
-            cidr=ec2.AclCidr.any_ipv4(),
-            traffic=ec2.AclTraffic.all_traffic(),
-            direction=ec2.TrafficDirection.EGRESS,
-            rule_action=ec2.Action.ALLOW
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PublicNACLOutboundAll",
+            network_acl_id=self.public_nacl.ref,
+            rule_number=140,
+            protocol=-1,  # All protocols
+            rule_action="allow",
+            cidr_block="0.0.0.0/0"
         )
         
         # Create NACL for Private Subnets
-        self.private_nacl = ec2.NetworkAcl(
+        self.private_nacl = ec2.CfnNetworkAcl(
             self,
             "PrivateNACL",
-            vpc=self.vpc,
-            network_acl_name=f"{app_prefix}-private-nacl"
+            vpc_id=self.vpc.vpc_id,
+            tags=[{"key": "Name", "value": f"{app_prefix}-private-nacl"}]
         )
         
-        # Private NACL Rules - More restrictive
-        # Allow inbound from VPC CIDR
-        self.private_nacl.add_entry(
-            "AllowInboundFromVPC",
+        # Private NACL Rules - Allow inbound from VPC CIDR
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PrivateNACLInboundFromVPC",
+            network_acl_id=self.private_nacl.ref,
             rule_number=100,
-            cidr=ec2.AclCidr.ipv4("10.10.0.0/16"),
-            traffic=ec2.AclTraffic.all_traffic(),
-            direction=ec2.TrafficDirection.INGRESS,
-            rule_action=ec2.Action.ALLOW
+            protocol=-1,  # All protocols
+            rule_action="allow",
+            cidr_block="10.10.0.0/16"
         )
         
         # Allow ephemeral ports for return traffic from internet
-        self.private_nacl.add_entry(
-            "AllowInboundEphemeral",
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PrivateNACLInboundEphemeral",
+            network_acl_id=self.private_nacl.ref,
             rule_number=110,
-            cidr=ec2.AclCidr.any_ipv4(),
-            traffic=ec2.AclTraffic.tcp_port_range(1024, 65535),
-            direction=ec2.TrafficDirection.INGRESS,
-            rule_action=ec2.Action.ALLOW
+            protocol=6,  # TCP
+            rule_action="allow",
+            cidr_block="0.0.0.0/0",
+            port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=1024, to=65535)
         )
         
-        # Allow outbound to VPC CIDR
-        self.private_nacl.add_entry(
-            "AllowOutboundToVPC",
-            rule_number=100,
-            cidr=ec2.AclCidr.ipv4("10.10.0.0/16"),
-            traffic=ec2.AclTraffic.all_traffic(),
-            direction=ec2.TrafficDirection.EGRESS,
-            rule_action=ec2.Action.ALLOW
-        )
-        
-        # Allow outbound HTTP/HTTPS for updates and downloads
-        self.private_nacl.add_entry(
-            "AllowOutboundHTTP",
-            rule_number=110,
-            cidr=ec2.AclCidr.any_ipv4(),
-            traffic=ec2.AclTraffic.tcp_port(80),
-            direction=ec2.TrafficDirection.EGRESS,
-            rule_action=ec2.Action.ALLOW
-        )
-        
-        self.private_nacl.add_entry(
-            "AllowOutboundHTTPS",
+        # Private NACL Outbound Rules
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PrivateNACLOutboundToVPC",
+            network_acl_id=self.private_nacl.ref,
             rule_number=120,
-            cidr=ec2.AclCidr.any_ipv4(),
-            traffic=ec2.AclTraffic.tcp_port(443),
-            direction=ec2.TrafficDirection.EGRESS,
-            rule_action=ec2.Action.ALLOW
+            protocol=-1,  # All protocols
+            rule_action="allow",
+            cidr_block="10.10.0.0/16"
+        )
+
+        # Allow outbound HTTP/HTTPS for updates and downloads
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PrivateNACLOutboundHTTP",
+            network_acl_id=self.private_nacl.ref,
+            rule_number=130,
+            protocol=6,  # TCP
+            rule_action="allow",
+            cidr_block="0.0.0.0/0",
+            port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=80, to=80)
+        )
+        
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PrivateNACLOutboundHTTPS",
+            network_acl_id=self.private_nacl.ref,
+            rule_number=140,
+            protocol=6,  # TCP
+            rule_action="allow",
+            cidr_block="0.0.0.0/0",
+            port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=443, to=443)
         )
         
         # Allow outbound DNS
-        self.private_nacl.add_entry(
-            "AllowOutboundDNS",
-            rule_number=130,
-            cidr=ec2.AclCidr.any_ipv4(),
-            traffic=ec2.AclTraffic.udp_port(53),
-            direction=ec2.TrafficDirection.EGRESS,
-            rule_action=ec2.Action.ALLOW
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PrivateNACLOutboundDNS",
+            network_acl_id=self.private_nacl.ref,
+            rule_number=150,
+            protocol=17,  # UDP
+            rule_action="allow",
+            cidr_block="0.0.0.0/0",
+            port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=53, to=53)
         )
         
-        # Associate NACLs with subnets
+        # Associate NACLs with subnets using CFN constructs
         for i, subnet in enumerate(self.public_subnets):
-            ec2.SubnetNetworkAclAssociation(
+            ec2.CfnSubnetNetworkAclAssociation(
                 self,
-                f"PublicSubnetNACLAssoc{i}",
-                subnet=subnet.attr_subnet_id,
-                network_acl=self.public_nacl.network_acl_id
+                f"PublicSubnetNACLAssoc{i+1}",
+                subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
+                network_acl_id=self.public_nacl.ref  # Fixed: Use CFN construct and .ref
             )
             
         for i, subnet in enumerate(self.private_subnets):
-            ec2.SubnetNetworkAclAssociation(
+            ec2.CfnSubnetNetworkAclAssociation(
                 self,
-                f"PrivateSubnetNACLAssoc{i}",
-                subnet=subnet.attr_subnet_id,
-                network_acl=self.private_nacl.network_acl_id
+                f"PrivateSubnetNACLAssoc{i+1}",
+                subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
+                network_acl_id=self.private_nacl.ref  # Fixed: Use CFN construct and .ref
             )
         
         # Export important values for other stacks
         self.vpc_id = self.vpc.vpc_id
-        self.public_subnet_ids = [subnet.attr_subnet_id for subnet in self.public_subnets]
-        self.private_subnet_ids = [subnet.attr_subnet_id for subnet in self.private_subnets]
+        self.public_subnet_ids = [subnet.ref for subnet in self.public_subnets]  # Fixed: Use .ref
+        self.private_subnet_ids = [subnet.ref for subnet in self.private_subnets]  # Fixed: Use .ref
