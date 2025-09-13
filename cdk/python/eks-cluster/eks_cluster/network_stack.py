@@ -1,17 +1,18 @@
 from constructs import Construct
 
 from aws_cdk import (
-    NestedStack,
     aws_ec2 as ec2,
+    Stack,
 )
 
-class NetworkStack(NestedStack):
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+class NetworkStack(Stack):
+    def __init__(self, scope: Construct, construct_id: str, app_prefix: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         self.vpc = ec2.Vpc(
             self,
             "VPC",
+            vpc_name= f"{app_prefix}-vpc",
             ip_addresses=ec2.IpAddresses.cidr("10.10.0.0/16"),  # 65,536
             subnet_configuration=[
                 ec2.SubnetConfiguration(
@@ -26,5 +27,5 @@ class NetworkStack(NestedStack):
                 ),
             ],
             max_azs=3,
-            nat_gateways=3,
+            nat_gateways=1,
         )

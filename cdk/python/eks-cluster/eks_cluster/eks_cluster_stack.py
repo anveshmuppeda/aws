@@ -111,61 +111,61 @@ class EksClusterStack(Stack):
     #     )
 
     # def __add_readonly_member(self, cluster: eks.Cluster, readonly_role_arn: str):
-        cluster.add_manifest(
-            "cluster-role",
-            {
-                "apiVersion": "rbac.authorization.k8s.io/v1",
-                "kind": "ClusterRole",
-                "metadata": {
-                    "name": "eks-access-cluster-role",
-                    "namespace": "kube-system",
-                },
-                "rules": [
-                    {
-                        "apiGroups": [""],
-                        "resources": [
-                            "configmaps",
-                            "services",
-                            "pods",
-                            "persistentvolumes",
-                            "namespaces",
-                        ],
-                        "verbs": ["get", "list", "watch"],
-                    },
-                    {
-                        "apiGroups": [""],
-                        "resources": ["pods/log"],
-                        "verbs": ["get", "list"],
-                    },
-                    {
-                        "apiGroups": [""],
-                        "resources": ["pods/portforward", "services/portforward"],
-                        "verbs": ["create"],
-                    },
-                ],
-            },
-        )
+        # cluster.add_manifest(
+        #     "cluster-role",
+        #     {
+        #         "apiVersion": "rbac.authorization.k8s.io/v1",
+        #         "kind": "ClusterRole",
+        #         "metadata": {
+        #             "name": "eks-access-cluster-role",
+        #             "namespace": "kube-system",
+        #         },
+        #         "rules": [
+        #             {
+        #                 "apiGroups": [""],
+        #                 "resources": [
+        #                     "configmaps",
+        #                     "services",
+        #                     "pods",
+        #                     "persistentvolumes",
+        #                     "namespaces",
+        #                 ],
+        #                 "verbs": ["get", "list", "watch"],
+        #             },
+        #             {
+        #                 "apiGroups": [""],
+        #                 "resources": ["pods/log"],
+        #                 "verbs": ["get", "list"],
+        #             },
+        #             {
+        #                 "apiGroups": [""],
+        #                 "resources": ["pods/portforward", "services/portforward"],
+        #                 "verbs": ["create"],
+        #             },
+        #         ],
+        #     },
+        # )
 
-        cluster.add_manifest(
-            "cluster-role-binding",
-            {
-                "apiVersion": "rbac.authorization.k8s.io/v1",
-                "kind": "ClusterRoleBinding",
-                "metadata": {
-                    "name": "iam-cluster-role-binding",
-                    "namespace": "kube-system",
-                },
-                "roleRef": {
-                    "apiGroup": "rbac.authorization.k8s.io",
-                    "kind": "ClusterRole",
-                    "name": "eks-access-cluster-role",
-                },
-                "subjects": [
-                    {
-                        "kind": "User",
-                        "name": readonly_role_arn,
-                        "apiGroup": "rbac.authorization.k8s.io",
-                    }
-                ],
-            },
-        )
+        # cluster.add_manifest(
+        #     "cluster-role-binding",
+        #     {
+        #         "apiVersion": "rbac.authorization.k8s.io/v1",
+        #         "kind": "ClusterRoleBinding",
+        #         "metadata": {
+        #             "name": "iam-cluster-role-binding",
+        #             "namespace": "kube-system",
+        #         },
+        #         "roleRef": {
+        #             "apiGroup": "rbac.authorization.k8s.io",
+        #             "kind": "ClusterRole",
+        #             "name": "eks-access-cluster-role",
+        #         },
+        #         "subjects": [
+        #             {
+        #                 "kind": "User",
+        #                 "name": readonly_role_arn,
+        #                 "apiGroup": "rbac.authorization.k8s.io",
+        #             }
+        #         ],
+        #     },
+        # )
