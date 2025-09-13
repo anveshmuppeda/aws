@@ -41,41 +41,36 @@ class NetworkStack(Stack):
         # Create Public Subnets
         self.public_subnets = []
         for i, az in enumerate(azs):
-            subnet = ec2.PublicSubnet(
+            subnet = ec2.CfnSubnet(
                 self,
                 f"PublicSubnet{i+1}",
                 availability_zone=az,
                 cidr_block=f"10.10.{i}.0/24",
                 vpc_id=self.vpc.vpc_id,
-                map_public_ip_on_launch=True
+                map_public_ip_on_launch=True,
+                tags=[{"key": "Name", "value": f"{app_prefix}-public-subnet-{i+1}"}]
             )
-            # Add name tag
-            subnet.node.default_child.add_property_override('Tags', [
-                {'Key': 'Name', 'Value': f"{app_prefix}-public-subnet-{i+1}"}
-            ])
             self.public_subnets.append(subnet)
         
         # Create Private Subnets
         self.private_subnets = []
         for i, az in enumerate(azs):
-            subnet = ec2.PrivateSubnet(
+            subnet = ec2.CfnSubnet(
                 self,
                 f"PrivateSubnet{i+1}",
                 availability_zone=az,
                 cidr_block=f"10.10.{i+10}.0/24",  # 10.10.10.0/24, 10.10.11.0/24
-                vpc_id=self.vpc.vpc_id
+                vpc_id=self.vpc.vpc_id,
+                map_public_ip_on_launch=False,
+                tags=[{"key": "Name", "value": f"{app_prefix}-private-subnet-{i+1}"}]
             )
-            # Add name tag
-            subnet.node.default_child.add_property_override('Tags', [
-                {'Key': 'Name', 'Value': f"{app_prefix}-private-subnet-{i+1}"}
-            ])
             self.private_subnets.append(subnet)
         
         # Create NAT Gateway (in first public subnet)
         self.nat_gateway = ec2.CfnNatGateway(
             self,
             "NATGateway",
-            subnet_id=self.public_subnets[0].subnet_id,
+            subnet_id=self.public_subnets[0].attr_subnet_id,
             allocation_id=ec2.CfnEIP(
                 self,
                 "NATGatewayEIP",
@@ -108,7 +103,7 @@ class NetworkStack(Stack):
             ec2.CfnSubnetRouteTableAssociation(
                 self,
                 f"PublicSubnetRTAssoc{i+1}",
-                subnet_id=subnet.subnet_id,
+                subnet_id=subnet.attr_subnet_id,
                 route_table_id=self.public_route_table.attr_route_table_id
             )
         
@@ -134,7 +129,7 @@ class NetworkStack(Stack):
             ec2.CfnSubnetRouteTableAssociation(
                 self,
                 f"PrivateSubnetRTAssoc{i+1}",
-                subnet_id=subnet.subnet_id,
+                subnet_id=subnet.attr_subnet_id,
                 route_table_id=self.private_route_table.attr_route_table_id
             )
         
@@ -268,19 +263,19 @@ class NetworkStack(Stack):
             ec2.SubnetNetworkAclAssociation(
                 self,
                 f"PublicSubnetNACLAssoc{i}",
-                subnet=subnet,
-                network_acl=self.public_nacl
+                subnet=subnet.attr_subnet_id,
+                network_acl=self.public_nacl.network_acl_id
             )
             
         for i, subnet in enumerate(self.private_subnets):
             ec2.SubnetNetworkAclAssociation(
                 self,
                 f"PrivateSubnetNACLAssoc{i}",
-                subnet=subnet,
-                network_acl=self.private_nacl
+                subnet=subnet.attr_subnet_id,
+                network_acl=self.private_nacl.network_acl_id
             )
         
         # Export important values for other stacks
         self.vpc_id = self.vpc.vpc_id
-        self.public_subnet_ids = [subnet.subnet_id for subnet in self.public_subnets]
-        self.private_subnet_ids = [subnet.subnet_id for subnet in self.private_subnets]
+        self.public_subnet_ids = [subnet.attr_subnet_id for subnet in self.public_subnets]
+        self.private_subnet_ids = [subnet.attr_subnet_id for subnet in self.private_subnets]
