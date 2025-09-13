@@ -198,7 +198,8 @@ class NetworkStack(Stack):
             rule_number=140,
             protocol=-1,  # All protocols
             rule_action="allow",
-            cidr_block="0.0.0.0/0"
+            cidr_block="0.0.0.0/0",
+            egress=True,
         )
         
         # Create NACL for Private Subnets
@@ -240,7 +241,8 @@ class NetworkStack(Stack):
             rule_number=120,
             protocol=-1,  # All protocols
             rule_action="allow",
-            cidr_block="10.10.0.0/16"
+            cidr_block="10.10.0.0/16",
+            egress=True,
         )
 
         # Allow outbound HTTP/HTTPS for updates and downloads
@@ -252,6 +254,7 @@ class NetworkStack(Stack):
             protocol=6,  # TCP
             rule_action="allow",
             cidr_block="0.0.0.0/0",
+            egress=True,
             port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=80, to=80)
         )
         
@@ -263,6 +266,7 @@ class NetworkStack(Stack):
             protocol=6,  # TCP
             rule_action="allow",
             cidr_block="0.0.0.0/0",
+            egress=True,
             port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=443, to=443)
         )
         
@@ -275,6 +279,7 @@ class NetworkStack(Stack):
             protocol=17,  # UDP
             rule_action="allow",
             cidr_block="0.0.0.0/0",
+            egress=True,
             port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=53, to=53)
         )
         
