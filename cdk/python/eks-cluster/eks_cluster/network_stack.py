@@ -189,6 +189,35 @@ class NetworkStack(Stack):
             cidr_block="0.0.0.0/0",
             port_range=ec2.CfnNetworkAclEntry.PortRangeProperty(from_=1024, to=65535)
         )
+
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PublicNACLOutboundICMP",
+            network_acl_id=self.public_nacl.ref,
+            rule_number=140,
+            protocol=1,  # ICMP
+            rule_action="allow",
+            cidr_block="0.0.0.0/0",
+            icmp=ec2.CfnNetworkAclEntry.IcmpProperty(
+                type=8,  # Echo Request
+                code=-1  # All codes
+            )
+        )
+
+        # Allow ICMP Echo Reply back IN
+        ec2.CfnNetworkAclEntry(
+            self,
+            "PublicNACLInboundICMPReply",
+            network_acl_id=self.public_nacl.ref,
+            rule_number=150,
+            protocol=1,  # ICMP
+            rule_action="allow",
+            cidr_block="0.0.0.0/0",
+            icmp=ec2.CfnNetworkAclEntry.IcmpProperty(
+                type=0,  # Echo Reply
+                code=-1  # All codes
+            )
+        )
         
         # Outbound Rules - Allow all outbound traffic
         ec2.CfnNetworkAclEntry(
