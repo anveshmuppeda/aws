@@ -55,18 +55,7 @@ class EksClusterStack(Stack):
             ]
         )
 
-        # Convert CFN subnets to ISubnet objects that EKS can use
-        private_subnets = []
-        for i, cfn_subnet in enumerate(network_stack.private_subnets):
-            subnet = ec2.Subnet.from_subnet_attributes(
-                self,
-                f"PrivateSubnet{i+1}Import",
-                subnet_id=cfn_subnet.ref,
-                availability_zone=cfn_subnet.availability_zone,
-                route_table_id=network_stack.private_route_table.ref
-            )
-            private_subnets.append(subnet)
-
+        # Use ONLY public subnets for everything - simplest setup
         public_subnets = []
         for i, cfn_subnet in enumerate(network_stack.public_subnets):
             subnet = ec2.Subnet.from_subnet_attributes(
@@ -78,25 +67,19 @@ class EksClusterStack(Stack):
             )
             public_subnets.append(subnet)
 
-        # Create VPC selection for EKS
-        vpc_subnets = [
-            ec2.SubnetSelection(subnets=private_subnets),
-            ec2.SubnetSelection(subnets=public_subnets)
-        ]
-
-        # Create EKS Cluster - WITH masters_role for testing
+        # Create EKS Cluster - Completely PUBLIC setup
         self.cluster = eks.Cluster(
             self,
             "EKSCluster",
             cluster_name=f"{app_prefix}-eks-cluster",
             version=eks.KubernetesVersion.V1_30,
             vpc=network_stack.vpc,
-            vpc_subnets=vpc_subnets,
+            vpc_subnets=[ec2.SubnetSelection(subnets=public_subnets)],  # ONLY public subnets
             role=eks_service_role,
-            masters_role=masters_role,  # Using the admin role
+            masters_role=masters_role,
             kubectl_layer=KubectlV30Layer(self, "kubectl"),
             default_capacity=0,
-            endpoint_access=eks.EndpointAccess.PUBLIC_AND_PRIVATE,
+            endpoint_access=eks.EndpointAccess.PUBLIC,  # Public only for simplicity
             cluster_logging=[
                 eks.ClusterLoggingTypes.API,
                 eks.ClusterLoggingTypes.AUTHENTICATOR,
@@ -106,6 +89,13 @@ class EksClusterStack(Stack):
             ],
         )
 
+        # Add security group rule for wide open access (testing only)
+        self.cluster.cluster_security_group.add_ingress_rule(
+            peer=ec2.Peer.any_ipv4(),
+            connection=ec2.Port.all_traffic(),
+            description="Allow all traffic for testing"
+        )
+
         # Add node groups and addons
         self.__add_nodegroup(cluster=self.cluster, nodegroup_role=nodegroup_role, app_prefix=app_prefix)
         self.__add_addon(cluster=self.cluster)
@@ -113,7 +103,18 @@ class EksClusterStack(Stack):
     def __add_nodegroup(self, cluster: eks.Cluster, nodegroup_role: iam.Role, app_prefix: str):
         instance_type_name = "t3.medium"
 
-        # Create managed node group in private subnets
+        # Get public subnets for node group
+        public_subnets = []
+        for i, cfn_subnet in enumerate(self.network_stack.public_subnets):
+            subnet = ec2.Subnet.from_subnet_attributes(
+                self,
+                f"NodeGroupPublicSubnet{i+1}",
+                subnet_id=cfn_subnet.ref,
+                availability_zone=cfn_subnet.availability_zone
+            )
+            public_subnets.append(subnet)
+
+        # Create managed node group in PUBLIC subnets
         self.nodegroup = eks.Nodegroup(
             self,
             "PrimaryNodeGroup",
@@ -121,16 +122,7 @@ class EksClusterStack(Stack):
             nodegroup_name=f"{app_prefix}-primary-nodegroup",
             node_role=nodegroup_role,
             instance_types=[ec2.InstanceType(instance_type_name)],
-            subnets=ec2.SubnetSelection(
-                subnets=[
-                    ec2.Subnet.from_subnet_attributes(
-                        self,
-                        f"NodeGroupSubnet{i+1}",
-                        subnet_id=cfn_subnet.ref,
-                        availability_zone=cfn_subnet.availability_zone
-                    ) for i, cfn_subnet in enumerate(self.network_stack.private_subnets)
-                ]
-            ),
+            subnets=ec2.SubnetSelection(subnets=public_subnets),
             min_size=1,
             max_size=5,
             desired_size=2,
@@ -139,11 +131,13 @@ class EksClusterStack(Stack):
             capacity_type=eks.CapacityType.ON_DEMAND,
             labels={
                 "instance-type": instance_type_name,
-                "nodegroup-type": "primary"
+                "nodegroup-type": "primary",
+                "network": "public"
             },
             tags={
                 "Name": f"{app_prefix}-primary-nodegroup",
-                "Environment": "testing"  # Changed to reflect testing nature
+                "Environment": "testing",
+                "Network": "Public"
             }
         )
 
