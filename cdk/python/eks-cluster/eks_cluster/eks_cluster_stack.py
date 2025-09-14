@@ -41,21 +41,18 @@ class EksClusterStack(Stack):
             ]
         )
 
-        # Simplified masters role - remove the problematic grant_assume_role call
+        # Create masters role for testing - WIDE OPEN ACCESS
         masters_role = iam.Role(
             self,
             "EKSMastersRole",
             role_name=f"{app_prefix}-eks-masters-role",
             assumed_by=iam.CompositePrincipal(
-                iam.ServicePrincipal(service="eks.amazonaws.com"),
-                iam.AnyPrincipal(),  # importent, else a SSO user can't assume
+                iam.AccountRootPrincipal(),
+                iam.AnyPrincipal(),  # WARNING: This allows ANYONE to assume this role
             ),
-        )
-        masters_role.add_managed_policy(
-            iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKSClusterPolicy")
-        )
-        masters_role.add_managed_policy(
-            iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")  # WARNING: Full admin access
+            ]
         )
 
         # Convert CFN subnets to ISubnet objects that EKS can use
@@ -87,7 +84,7 @@ class EksClusterStack(Stack):
             ec2.SubnetSelection(subnets=public_subnets)
         ]
 
-        # Create EKS Cluster - SIMPLIFIED without problematic RBAC
+        # Create EKS Cluster - WITH masters_role for testing
         self.cluster = eks.Cluster(
             self,
             "EKSCluster",
@@ -96,7 +93,7 @@ class EksClusterStack(Stack):
             vpc=network_stack.vpc,
             vpc_subnets=vpc_subnets,
             role=eks_service_role,
-            masters_role=masters_role,
+            masters_role=masters_role,  # Using the admin role
             kubectl_layer=KubectlV30Layer(self, "kubectl"),
             default_capacity=0,
             endpoint_access=eks.EndpointAccess.PUBLIC_AND_PRIVATE,
@@ -109,9 +106,7 @@ class EksClusterStack(Stack):
             ],
         )
 
-        masters_role.grant_assume_role(self.cluster.admin_role)
-
-        # Add node groups and addons only
+        # Add node groups and addons
         self.__add_nodegroup(cluster=self.cluster, nodegroup_role=nodegroup_role, app_prefix=app_prefix)
         self.__add_addon(cluster=self.cluster)
 
@@ -148,7 +143,7 @@ class EksClusterStack(Stack):
             },
             tags={
                 "Name": f"{app_prefix}-primary-nodegroup",
-                "Environment": "production"
+                "Environment": "testing"  # Changed to reflect testing nature
             }
         )
 
