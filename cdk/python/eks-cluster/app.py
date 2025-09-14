@@ -5,6 +5,7 @@ from aws_cdk import Tags
 
 from eks_cluster.eks_cluster_stack import EksClusterStack
 from eks_cluster.network_stack import NetworkStack
+from eks_cluster.eks_cluster import KubernetesStack
 
 app = cdk.App()
 
@@ -20,6 +21,12 @@ eks_stack = EksClusterStack(
     app, 
     "EksClusterStack",
     app_prefix=APP_PREFIX,
+    network_stack=network_stack
+)
+
+eks_stack2 = KubernetesStack(
+    app, 
+    "EksClusterStack2",
     network_stack=network_stack
 )
 

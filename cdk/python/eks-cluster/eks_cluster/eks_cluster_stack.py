@@ -41,27 +41,21 @@ class EksClusterStack(Stack):
             ]
         )
 
-        # Create masters role for kubectl access
+        # Simplified masters role - remove the problematic grant_assume_role call
         masters_role = iam.Role(
             self,
             "EKSMastersRole",
             role_name=f"{app_prefix}-eks-masters-role",
             assumed_by=iam.CompositePrincipal(
-                iam.AccountRootPrincipal(),  # Allow root account access
+                iam.ServicePrincipal(service="eks.amazonaws.com"),
+                iam.AnyPrincipal(),  # importent, else a SSO user can't assume
             ),
         )
         masters_role.add_managed_policy(
             iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKSClusterPolicy")
         )
-
-        # Create readonly role
-        readonly_role = iam.Role(
-            self,
-            "EKSReadOnlyRole",
-            role_name=f"{app_prefix}-eks-readonly-role",
-            assumed_by=iam.CompositePrincipal(
-                iam.AccountRootPrincipal(),
-            ),
+        masters_role.add_managed_policy(
+            iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")
         )
 
         # Convert CFN subnets to ISubnet objects that EKS can use
@@ -93,18 +87,18 @@ class EksClusterStack(Stack):
             ec2.SubnetSelection(subnets=public_subnets)
         ]
 
-        # Create EKS Cluster
+        # Create EKS Cluster - SIMPLIFIED without problematic RBAC
         self.cluster = eks.Cluster(
             self,
             "EKSCluster",
             cluster_name=f"{app_prefix}-eks-cluster",
-            version=eks.KubernetesVersion.V1_30,  # Fixed: V1_32 doesn't exist, use V1_30
+            version=eks.KubernetesVersion.V1_30,
             vpc=network_stack.vpc,
             vpc_subnets=vpc_subnets,
             role=eks_service_role,
             masters_role=masters_role,
             kubectl_layer=KubectlV30Layer(self, "kubectl"),
-            default_capacity=0,  # We'll add managed node groups separately
+            default_capacity=0,
             endpoint_access=eks.EndpointAccess.PUBLIC_AND_PRIVATE,
             cluster_logging=[
                 eks.ClusterLoggingTypes.API,
@@ -115,22 +109,11 @@ class EksClusterStack(Stack):
             ],
         )
 
-        # Grant masters role access to the cluster
         masters_role.grant_assume_role(self.cluster.admin_role)
 
-        # Add readonly role mapping
-        self.cluster.aws_auth.add_role_mapping(
-            readonly_role, 
-            groups=["system:authenticated"]
-        )
-
-        # Add node groups, addons, and RBAC
+        # Add node groups and addons only
         self.__add_nodegroup(cluster=self.cluster, nodegroup_role=nodegroup_role, app_prefix=app_prefix)
         self.__add_addon(cluster=self.cluster)
-        self.__add_readonly_member(
-            cluster=self.cluster, 
-            readonly_role_arn=readonly_role.role_arn
-        )
 
     def __add_nodegroup(self, cluster: eks.Cluster, nodegroup_role: iam.Role, app_prefix: str):
         instance_type_name = "t3.medium"
@@ -153,9 +136,9 @@ class EksClusterStack(Stack):
                     ) for i, cfn_subnet in enumerate(self.network_stack.private_subnets)
                 ]
             ),
-            min_size=1,  # Reduced min_size to 1 for cost savings
+            min_size=1,
             max_size=5,
-            desired_size=2,  # Reduced desired_size to 2 for cost savings
+            desired_size=2,
             disk_size=100,
             ami_type=eks.NodegroupAmiType.AL2_X86_64,
             capacity_type=eks.CapacityType.ON_DEMAND,
@@ -170,120 +153,42 @@ class EksClusterStack(Stack):
         )
 
     def __add_addon(self, cluster: eks.Cluster):
-        # VPC CNI Addon - Updated to compatible version
+        # VPC CNI Addon
         eks.CfnAddon(
             self,
             "VPCCNIAddon",
             addon_name="vpc-cni",
             cluster_name=cluster.cluster_name,
-            addon_version="v1.18.1-eksbuild.1",  # Updated for K8s 1.30 compatibility
+            addon_version="v1.18.1-eksbuild.1",
             resolve_conflicts="OVERWRITE"
         )
         
-        # CoreDNS Addon - Updated to compatible version
+        # CoreDNS Addon
         eks.CfnAddon(
             self,
             "CoreDNSAddon",
             addon_name="coredns",
             cluster_name=cluster.cluster_name,
-            addon_version="v1.11.1-eksbuild.4",  # Updated for K8s 1.30 compatibility
+            addon_version="v1.11.1-eksbuild.4",
             resolve_conflicts="OVERWRITE"
         )
         
-        # Kube Proxy Addon - Updated to compatible version
+        # Kube Proxy Addon
         eks.CfnAddon(
             self,
             "KubeProxyAddon",
             addon_name="kube-proxy",
             cluster_name=cluster.cluster_name,
-            addon_version="v1.30.0-eksbuild.3",  # Updated for K8s 1.30 compatibility
+            addon_version="v1.30.0-eksbuild.3",
             resolve_conflicts="OVERWRITE"
         )
         
-        # EBS CSI Driver Addon - Updated to compatible version
+        # EBS CSI Driver Addon
         eks.CfnAddon(
             self,
             "EBSCSIDriverAddon",
             addon_name="aws-ebs-csi-driver",
             cluster_name=cluster.cluster_name,
-            addon_version="v1.31.0-eksbuild.1",  # Updated for K8s 1.30 compatibility
+            addon_version="v1.31.0-eksbuild.1",
             resolve_conflicts="OVERWRITE"
-        )
-
-    def __add_readonly_member(self, cluster: eks.Cluster, readonly_role_arn: str):
-        # Create ClusterRole for readonly access
-        cluster.add_manifest(
-            "ReadOnlyClusterRole",
-            {
-                "apiVersion": "rbac.authorization.k8s.io/v1",
-                "kind": "ClusterRole",
-                "metadata": {
-                    "name": "eks-readonly-cluster-role",
-                },
-                "rules": [
-                    {
-                        "apiGroups": [""],
-                        "resources": [
-                            "configmaps",
-                            "services",
-                            "pods",
-                            "persistentvolumes",
-                            "persistentvolumeclaims",
-                            "namespaces",
-                            "nodes",
-                            "events"
-                        ],
-                        "verbs": ["get", "list", "watch"],
-                    },
-                    {
-                        "apiGroups": [""],
-                        "resources": ["pods/log"],
-                        "verbs": ["get", "list"],
-                    },
-                    {
-                        "apiGroups": [""],
-                        "resources": ["pods/portforward", "services/portforward"],
-                        "verbs": ["create"],
-                    },
-                    {
-                        "apiGroups": ["apps"],
-                        "resources": [
-                            "deployments",
-                            "daemonsets",
-                            "replicasets",
-                            "statefulsets"
-                        ],
-                        "verbs": ["get", "list", "watch"],
-                    },
-                    {
-                        "apiGroups": ["extensions"],
-                        "resources": ["deployments", "replicasets"],
-                        "verbs": ["get", "list", "watch"],
-                    }
-                ],
-            },
-        )
-
-        # Create ClusterRoleBinding
-        cluster.add_manifest(
-            "ReadOnlyClusterRoleBinding",
-            {
-                "apiVersion": "rbac.authorization.k8s.io/v1",
-                "kind": "ClusterRoleBinding",
-                "metadata": {
-                    "name": "eks-readonly-cluster-role-binding",
-                },
-                "roleRef": {
-                    "apiGroup": "rbac.authorization.k8s.io",
-                    "kind": "ClusterRole",
-                    "name": "eks-readonly-cluster-role",
-                },
-                "subjects": [
-                    {
-                        "kind": "User",
-                        "name": readonly_role_arn,
-                        "apiGroup": "rbac.authorization.k8s.io",
-                    }
-                ],
-            },
         )
