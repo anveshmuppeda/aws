@@ -1,11 +1,9 @@
 from constructs import Construct
+from aws_cdk.lambda_layer_kubectl_v30 import KubectlV30Layer
 from aws_cdk import (
     Duration,
     Stack,
     aws_iam as iam,
-    aws_sqs as sqs,
-    aws_sns as sns,
-    aws_sns_subscriptions as subs,
     aws_ec2 as ec2,
     aws_eks as eks,
 )
@@ -25,8 +23,7 @@ class EksClusterStack(Stack):
             role_name=f"{app_prefix}-eks-service-role",
             assumed_by=iam.ServicePrincipal("eks.amazonaws.com"),
             managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKSClusterPolicy"),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKSServicePolicy")
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKSClusterPolicy")
             ]
         )
 
@@ -51,14 +48,10 @@ class EksClusterStack(Stack):
             role_name=f"{app_prefix}-eks-masters-role",
             assumed_by=iam.CompositePrincipal(
                 iam.AccountRootPrincipal(),  # Allow root account access
-                iam.ArnPrincipal(f"arn:aws:iam::{self.account}:root")  # Explicit root access
             ),
         )
         masters_role.add_managed_policy(
             iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKSClusterPolicy")
-        )
-        masters_role.add_managed_policy(
-            iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKSServicePolicy")
         )
 
         # Create readonly role
@@ -68,7 +61,6 @@ class EksClusterStack(Stack):
             role_name=f"{app_prefix}-eks-readonly-role",
             assumed_by=iam.CompositePrincipal(
                 iam.AccountRootPrincipal(),
-                iam.ArnPrincipal(f"arn:aws:iam::{self.account}:root")
             ),
         )
 
@@ -106,11 +98,12 @@ class EksClusterStack(Stack):
             self,
             "EKSCluster",
             cluster_name=f"{app_prefix}-eks-cluster",
-            version=eks.KubernetesVersion.V1_32, 
+            version=eks.KubernetesVersion.V1_30,  # Fixed: V1_32 doesn't exist, use V1_30
             vpc=network_stack.vpc,
             vpc_subnets=vpc_subnets,
             role=eks_service_role,
             masters_role=masters_role,
+            kubectl_layer=KubectlV30Layer(self, "kubectl"),
             default_capacity=0,  # We'll add managed node groups separately
             endpoint_access=eks.EndpointAccess.PUBLIC_AND_PRIVATE,
             cluster_logging=[
@@ -160,9 +153,9 @@ class EksClusterStack(Stack):
                     ) for i, cfn_subnet in enumerate(self.network_stack.private_subnets)
                 ]
             ),
-            min_size=2,
+            min_size=1,  # Reduced min_size to 1 for cost savings
             max_size=5,
-            desired_size=3,
+            desired_size=2,  # Reduced desired_size to 2 for cost savings
             disk_size=100,
             ami_type=eks.NodegroupAmiType.AL2_X86_64,
             capacity_type=eks.CapacityType.ON_DEMAND,
@@ -177,43 +170,43 @@ class EksClusterStack(Stack):
         )
 
     def __add_addon(self, cluster: eks.Cluster):
-        # VPC CNI Addon
+        # VPC CNI Addon - Updated to compatible version
         eks.CfnAddon(
             self,
             "VPCCNIAddon",
             addon_name="vpc-cni",
             cluster_name=cluster.cluster_name,
-            addon_version="v1.15.4-eksbuild.1",  # Specify version for consistency
+            addon_version="v1.18.1-eksbuild.1",  # Updated for K8s 1.30 compatibility
             resolve_conflicts="OVERWRITE"
         )
         
-        # CoreDNS Addon
+        # CoreDNS Addon - Updated to compatible version
         eks.CfnAddon(
             self,
             "CoreDNSAddon",
             addon_name="coredns",
             cluster_name=cluster.cluster_name,
-            addon_version="v1.10.1-eksbuild.5",
+            addon_version="v1.11.1-eksbuild.4",  # Updated for K8s 1.30 compatibility
             resolve_conflicts="OVERWRITE"
         )
         
-        # Kube Proxy Addon
+        # Kube Proxy Addon - Updated to compatible version
         eks.CfnAddon(
             self,
             "KubeProxyAddon",
             addon_name="kube-proxy",
             cluster_name=cluster.cluster_name,
-            addon_version="v1.28.2-eksbuild.2",
+            addon_version="v1.30.0-eksbuild.3",  # Updated for K8s 1.30 compatibility
             resolve_conflicts="OVERWRITE"
         )
         
-        # EBS CSI Driver Addon
+        # EBS CSI Driver Addon - Updated to compatible version
         eks.CfnAddon(
             self,
             "EBSCSIDriverAddon",
             addon_name="aws-ebs-csi-driver",
             cluster_name=cluster.cluster_name,
-            addon_version="v1.24.0-eksbuild.1",
+            addon_version="v1.31.0-eksbuild.1",  # Updated for K8s 1.30 compatibility
             resolve_conflicts="OVERWRITE"
         )
 
