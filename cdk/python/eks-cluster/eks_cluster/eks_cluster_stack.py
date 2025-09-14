@@ -37,7 +37,7 @@ class EksClusterStack(Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKSWorkerNodePolicy"),
                 iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKS_CNI_Policy"),
                 iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEC2ContainerRegistryReadOnly"),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEBSCSIDriverPolicy")
+                iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonEBSCSIDriverPolicy")
             ]
         )
 
