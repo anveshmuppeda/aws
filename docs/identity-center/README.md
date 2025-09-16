@@ -4,6 +4,8 @@
 
 This hands-on lab provides a comprehensive, step-by-step guide to setting up and using AWS Identity Center (formerly AWS Single Sign-On) for managing access to AWS accounts and applications. By completing this lab, you will have a fully functional AWS Identity Center setup that streamlines user access management across your AWS environment.
 
+![AWS Identity Center](img/aws-identity-center.png)
+
 ## Prerequisites
 
 - An AWS account with administrative privileges
