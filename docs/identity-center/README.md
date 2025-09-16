@@ -1,4 +1,5 @@
 # AWS Identity Center (formerly AWS SSO) Hands-On Lab
+*Stop Juggling AWS Accounts: Streamline Access with Identity Center*  
 
 ## Overview
 
