@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_iam as iam,
     aws_ec2 as ec2,
     aws_s3 as s3,
+    aws_lambda as _lambda,
 )
 
 
@@ -140,3 +141,32 @@ class VpcEndpointsStack(Stack):
                 subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
                 route_table_id=self.private_route_table.ref  # Fixed: Use .ref instead of .attr_route_table_id
             )
+
+        # Create Lambda Function Role
+        lambda_role = iam.Role(
+            self,
+            "LambdaExecutionRole",
+            assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess")
+            ]
+        )
+
+        # Base lambda function set up
+        sample_lambda = _lambda.Function(
+            self,
+            "MyFunction", 
+            runtime=_lambda.Runtime.PYTHON_3_13,
+            code=_lambda.Code.from_asset("lambda"),
+            handler="index.lambda_handler",
+            role=lambda_role,
+            timeout=Duration.seconds(60),
+            vpc=self.demo_vpc,
+            vpc_subnets=ec2.SubnetSelection(
+                subnets=[
+                    ec2.Subnet.from_subnet_id(self, f"PrivateSubnetRef{i+1}", subnet.ref)
+                    for i, subnet in enumerate(self.private_subnets)
+                ]
+            )
+        )
