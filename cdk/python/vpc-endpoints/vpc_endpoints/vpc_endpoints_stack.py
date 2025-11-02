@@ -125,13 +125,13 @@ class VpcEndpointsStack(Stack):
         )
         
         # Add route to NAT Gateway
-        ec2.CfnRoute(
-            self,
-            "PrivateRoute",
-            route_table_id=self.private_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
-            destination_cidr_block="0.0.0.0/0",
-            nat_gateway_id=self.nat_gateway.ref  # Fixed: Use .ref instead of .attr_nat_gateway_id
-        )
+        # ec2.CfnRoute(
+        #     self,
+        #     "PrivateRoute",
+        #     route_table_id=self.private_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
+        #     destination_cidr_block="0.0.0.0/0",
+        #     nat_gateway_id=self.nat_gateway.ref  # Fixed: Use .ref instead of .attr_nat_gateway_id
+        # )
         
         # Associate private subnets with private route table
         for i, subnet in enumerate(self.private_subnets):
@@ -149,14 +149,16 @@ class VpcEndpointsStack(Stack):
             assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess")
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonVPCFullAccess"),
             ]
         )
 
         # Base lambda function set up
         sample_lambda = _lambda.Function(
             self,
-            "MyFunction", 
+            "MyFunction",
+            function_name=f"{app_prefix}-lambda-function",
             runtime=_lambda.Runtime.PYTHON_3_13,
             code=_lambda.Code.from_asset("lambda"),
             handler="index.lambda_handler",
@@ -169,4 +171,14 @@ class VpcEndpointsStack(Stack):
                     for i, subnet in enumerate(self.private_subnets)
                 ]
             )
+        )
+
+        # Create S3 Gateway Endpoint
+        self.s3_gateway_endpoint = ec2.CfnVPCEndpoint(
+            self,
+            "S3GatewayEndpoint",
+            vpc_id=self.demo_vpc.vpc_id,
+            service_name=f"com.amazonaws.{self.region}.s3",
+            vpc_endpoint_type="Gateway",
+            route_table_ids=[self.private_route_table.ref],
         )
