@@ -98,6 +98,14 @@ class VpcEndpointsStack(Stack):
             vpc_id=self.demo_vpc.vpc_id,
             tags=[{"key": "Name", "value": f"{app_prefix}-public-rt"}]
         )
+        # Add route to Internet Gateway
+        ec2.CfnRoute(
+            self,
+            "PublicRoute",
+            route_table_id=self.public_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
+            destination_cidr_block="0.0.0.0/0",
+            gateway_id=self.igw.ref  # Fixed: Use .ref instead of .attr_internet_gateway_id
+        )
         # Associate public subnets with public route table
         for i, subnet in enumerate(self.public_subnets):
             ec2.CfnSubnetRouteTableAssociation(
