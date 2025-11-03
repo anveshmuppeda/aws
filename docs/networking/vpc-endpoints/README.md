@@ -112,7 +112,10 @@ vpc-endpoints/
 ## 🚀 Deployment Guide
 
 ### Step 1: Clone or Create Project
-
+```bash
+git clone https://github.com/anveshmuppeda/aws.git
+cd cdk/python/vpc-endpoints
+```
 If starting from scratch:
 ```bash
 mkdir vpc-endpoints-demo
