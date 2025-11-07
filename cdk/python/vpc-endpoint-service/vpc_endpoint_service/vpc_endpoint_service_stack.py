@@ -17,220 +17,327 @@ class VpcEndpointServiceStack(Stack):
         provider_app_prefix = "provider-app-demo"
 
         ### CONSUMER VPC SETUP ###
-        # Create Demo VPC
+        # Create Consumer VPC
         self.consumer_vpc = ec2.Vpc(
             self,
-            "VPC",
+            "ConsumerVPC",
             vpc_name=f"{consumer_app_prefix}-vpc",
             ip_addresses=ec2.IpAddresses.cidr("10.10.0.0/16"),
             enable_dns_hostnames=True,
             enable_dns_support=True,
-            # Create VPC without subnets
             subnet_configuration=[]
         )
         
-        # Create Internet Gateway
+        # Create Internet Gateway for Consumer
         self.consumer_igw = ec2.CfnInternetGateway(
             self,
-            "InternetGateway",
+            "ConsumerInternetGateway",
             tags=[{"key": "Name", "value": f"{consumer_app_prefix}-igw"}]
         )
         
-        # Attach Internet Gateway to VPC
+        # Attach Internet Gateway to Consumer VPC
         ec2.CfnVPCGatewayAttachment(
             self,
-            "IGWAttachment",
+            "ConsumerIGWAttachment",
             vpc_id=self.consumer_vpc.vpc_id,
-            internet_gateway_id=self.consumer_igw.ref  # Fixed: Use .ref instead of .attr_internet_gateway_id
+            internet_gateway_id=self.consumer_igw.ref
         )
 
         # Get availability zones (first 1)
         azs = self.availability_zones[:1]
 
-        # Create Public Subnets
-        self.consumer_provider_public_subnets = []
+        # Create Consumer Public Subnets
+        self.consumer_public_subnets = []
         for i, az in enumerate(azs):
             subnet = ec2.CfnSubnet(
                 self,
-                f"PublicSubnet{i+1}",
+                f"ConsumerPublicSubnet{i+1}",
                 availability_zone=az,
                 cidr_block=f"10.10.{i}.0/24",
                 vpc_id=self.consumer_vpc.vpc_id,
                 map_public_ip_on_launch=True,
                 tags=[{"key": "Name", "value": f"{consumer_app_prefix}-public-subnet-{i+1}"}]
             )
-            self.consumer_provider_public_subnets.append(subnet)
+            self.consumer_public_subnets.append(subnet)
         
-        # Create Private Subnets
-        self.consumer_provider_private_subnets = []
+        # Create Consumer Private Subnets
+        self.consumer_private_subnets = []
         for i, az in enumerate(azs):
             subnet = ec2.CfnSubnet(
                 self,
-                f"PrivateSubnet{i+1}",
+                f"ConsumerPrivateSubnet{i+1}",
                 availability_zone=az,
-                cidr_block=f"10.10.{i+10}.0/24",  # 10.10.10.0/24, 10.10.11.0/24
+                cidr_block=f"10.10.{i+10}.0/24",
                 vpc_id=self.consumer_vpc.vpc_id,
                 map_public_ip_on_launch=False,
                 tags=[{"key": "Name", "value": f"{consumer_app_prefix}-private-subnet-{i+1}"}]
             )
-            self.consumer_provider_private_subnets.append(subnet)
+            self.consumer_private_subnets.append(subnet)
         
-        # Create Route Tables
-        # Public Route Table
+        # Create Consumer Public Route Table
         self.consumer_public_route_table = ec2.CfnRouteTable(
             self,
-            "PublicRouteTable",
+            "ConsumerPublicRouteTable",
             vpc_id=self.consumer_vpc.vpc_id,
             tags=[{"key": "Name", "value": f"{consumer_app_prefix}-public-rt"}]
         )
+        
         # Add route to Internet Gateway
         ec2.CfnRoute(
             self,
-            "PublicRoute",
-            route_table_id=self.consumer_public_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
+            "ConsumerPublicRoute",
+            route_table_id=self.consumer_public_route_table.ref,
             destination_cidr_block="0.0.0.0/0",
-            gateway_id=self.consumer_igw.ref  # Fixed: Use .ref instead of .attr_internet_gateway_id
+            gateway_id=self.consumer_igw.ref
         )
-        # Associate public subnets with public route table
-        for i, subnet in enumerate(self.consumer_provider_public_subnets):
+        
+        # Associate consumer public subnets with public route table
+        for i, subnet in enumerate(self.consumer_public_subnets):
             ec2.CfnSubnetRouteTableAssociation(
                 self,
-                f"PublicSubnetRTAssoc{i+1}",
-                subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
-                route_table_id=self.consumer_public_route_table.ref  # Fixed: Use .ref instead of .attr_route_table_id
+                f"ConsumerPublicSubnetRTAssoc{i+1}",
+                subnet_id=subnet.ref,
+                route_table_id=self.consumer_public_route_table.ref
             )
         
-        # Private Route Table
+        # Create Consumer Private Route Table
         self.consumer_private_route_table = ec2.CfnRouteTable(
             self,
-            "PrivateRouteTable",
+            "ConsumerPrivateRouteTable",
             vpc_id=self.consumer_vpc.vpc_id,
             tags=[{"key": "Name", "value": f"{consumer_app_prefix}-private-rt"}]
         )
         
-        # Associate private subnets with private route table
-        for i, subnet in enumerate(self.consumer_provider_private_subnets):
+        # Associate consumer private subnets with private route table
+        for i, subnet in enumerate(self.consumer_private_subnets):
             ec2.CfnSubnetRouteTableAssociation(
                 self,
-                f"PrivateSubnetRTAssoc{i+1}",
-                subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
-                route_table_id=self.consumer_private_route_table.ref  # Fixed: Use .ref instead of .attr_route_table_id
+                f"ConsumerPrivateSubnetRTAssoc{i+1}",
+                subnet_id=subnet.ref,
+                route_table_id=self.consumer_private_route_table.ref
             )
         
-        ### Provider VPC SETUP ###
-        # Create VPC
+        ### PROVIDER VPC SETUP ###
+        # Create Provider VPC (using different CIDR to avoid overlap)
         self.provider_vpc = ec2.Vpc(
             self,
-            "VPC",
+            "ProviderVPC",
             vpc_name=f"{provider_app_prefix}-vpc",
-            ip_addresses=ec2.IpAddresses.cidr("10.10.0.0/16"),
+            ip_addresses=ec2.IpAddresses.cidr("10.20.0.0/16"),
             enable_dns_hostnames=True,
             enable_dns_support=True,
-            # Create VPC without subnets
             subnet_configuration=[]
         )
         
-        # Create Internet Gateway
+        # Create Internet Gateway for Provider
         self.provider_igw = ec2.CfnInternetGateway(
             self,
-            "InternetGateway",
+            "ProviderInternetGateway",
             tags=[{"key": "Name", "value": f"{provider_app_prefix}-igw"}]
         )
         
-        # Attach Internet Gateway to VPC
+        # Attach Internet Gateway to Provider VPC
         ec2.CfnVPCGatewayAttachment(
             self,
-            "IGWAttachment",
+            "ProviderIGWAttachment",
             vpc_id=self.provider_vpc.vpc_id,
-            internet_gateway_id=self.provider_igw.ref  # Fixed: Use .ref instead of .attr_internet_gateway_id
+            internet_gateway_id=self.provider_igw.ref
         )
 
-        # Get availability zones (first 1)
-        azs = self.availability_zones[:1]
-
-        # Create Public Subnets
+        # Create Provider Public Subnets
         self.provider_public_subnets = []
         for i, az in enumerate(azs):
             subnet = ec2.CfnSubnet(
                 self,
-                f"PublicSubnet{i+1}",
+                f"ProviderPublicSubnet{i+1}",
                 availability_zone=az,
-                cidr_block=f"10.10.{i}.0/24",
+                cidr_block=f"10.20.{i}.0/24",
                 vpc_id=self.provider_vpc.vpc_id,
                 map_public_ip_on_launch=True,
                 tags=[{"key": "Name", "value": f"{provider_app_prefix}-public-subnet-{i+1}"}]
             )
             self.provider_public_subnets.append(subnet)
         
-        # Create Private Subnets
+        # Create Provider Private Subnets
         self.provider_private_subnets = []
         for i, az in enumerate(azs):
             subnet = ec2.CfnSubnet(
                 self,
-                f"PrivateSubnet{i+1}",
+                f"ProviderPrivateSubnet{i+1}",
                 availability_zone=az,
-                cidr_block=f"10.10.{i+10}.0/24",  # 10.10.10.0/24, 10.10.11.0/24
+                cidr_block=f"10.20.{i+10}.0/24",
                 vpc_id=self.provider_vpc.vpc_id,
                 map_public_ip_on_launch=False,
                 tags=[{"key": "Name", "value": f"{provider_app_prefix}-private-subnet-{i+1}"}]
             )
             self.provider_private_subnets.append(subnet)
         
-        # Create Route Tables
-        # Public Route Table
+        # Create Provider Public Route Table
         self.provider_public_route_table = ec2.CfnRouteTable(
             self,
-            "PublicRouteTable",
+            "ProviderPublicRouteTable",
             vpc_id=self.provider_vpc.vpc_id,
             tags=[{"key": "Name", "value": f"{provider_app_prefix}-public-rt"}]
         )
+        
         # Add route to Internet Gateway
         ec2.CfnRoute(
             self,
-            "PublicRoute",
-            route_table_id=self.provider_public_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
+            "ProviderPublicRoute",
+            route_table_id=self.provider_public_route_table.ref,
             destination_cidr_block="0.0.0.0/0",
-            gateway_id=self.provider_igw.ref  # Fixed: Use .ref instead of .attr_internet_gateway_id
+            gateway_id=self.provider_igw.ref
         )
-        # Associate public subnets with public route table
+        
+        # Associate provider public subnets with public route table
         for i, subnet in enumerate(self.provider_public_subnets):
             ec2.CfnSubnetRouteTableAssociation(
                 self,
-                f"PublicSubnetRTAssoc{i+1}",
-                subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
-                route_table_id=self.provider_public_route_table.ref  # Fixed: Use .ref instead of .attr_route_table_id
+                f"ProviderPublicSubnetRTAssoc{i+1}",
+                subnet_id=subnet.ref,
+                route_table_id=self.provider_public_route_table.ref
             )
         
-        # Private Route Table
+        # Create Provider Private Route Table
         self.provider_private_route_table = ec2.CfnRouteTable(
             self,
-            "PrivateRouteTable",
+            "ProviderPrivateRouteTable",
             vpc_id=self.provider_vpc.vpc_id,
             tags=[{"key": "Name", "value": f"{provider_app_prefix}-private-rt"}]
         )
         
-        # Associate private subnets with private route table
+        # Associate provider private subnets with private route table
         for i, subnet in enumerate(self.provider_private_subnets):
             ec2.CfnSubnetRouteTableAssociation(
                 self,
-                f"PrivateSubnetRTAssoc{i+1}",
-                subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
-                route_table_id=self.provider_private_route_table.ref  # Fixed: Use .ref instead of .attr_route_table_id
+                f"ProviderPrivateSubnetRTAssoc{i+1}",
+                subnet_id=subnet.ref,
+                route_table_id=self.provider_private_route_table.ref
             )
 
-        # Create Security Group for ECR VPC Endpoints
+        ### SECURITY GROUPS ###
+        
+        # Create Security Group for Consumer EC2 instances
+        consumer_ec2_sg = ec2.SecurityGroup(
+            self,
+            "ConsumerEC2SecurityGroup",
+            vpc=self.consumer_vpc,
+            security_group_name=f"{consumer_app_prefix}-ec2-sg",
+            description="Security group for Consumer EC2 instances",
+            allow_all_outbound=True
+        )
+        
+        # Allow SSH from anywhere (you may want to restrict this to your IP)
+        consumer_ec2_sg.add_ingress_rule(
+            peer=ec2.Peer.any_ipv4(),
+            connection=ec2.Port.tcp(22),
+            description="Allow SSH from anywhere"
+        )
+        
+        # Allow ICMP (ping)
+        consumer_ec2_sg.add_ingress_rule(
+            peer=ec2.Peer.ipv4("10.10.0.0/16"),
+            connection=ec2.Port.all_icmp(),
+            description="Allow ICMP from Consumer VPC"
+        )
+        
+        # Create Security Group for Provider EC2 instances
+        provider_ec2_sg = ec2.SecurityGroup(
+            self,
+            "ProviderEC2SecurityGroup",
+            vpc=self.provider_vpc,
+            security_group_name=f"{provider_app_prefix}-ec2-sg",
+            description="Security group for Provider EC2 instances",
+            allow_all_outbound=True
+        )
+        
+        # Allow SSH from anywhere (you may want to restrict this to your IP)
+        provider_ec2_sg.add_ingress_rule(
+            peer=ec2.Peer.any_ipv4(),
+            connection=ec2.Port.tcp(22),
+            description="Allow SSH from anywhere"
+        )
+        
+        # Allow ICMP (ping)
+        provider_ec2_sg.add_ingress_rule(
+            peer=ec2.Peer.ipv4("10.20.0.0/16"),
+            connection=ec2.Port.all_icmp(),
+            description="Allow ICMP from Provider VPC"
+        )
+        
+        # Create Security Group for VPC Endpoints
         vpc_endpoint_sg = ec2.SecurityGroup(
             self,
             "ECREndpointSecurityGroup",
             vpc=self.provider_vpc,
             security_group_name=f"{provider_app_prefix}-ecr-endpoint-sg",
             description="Security group for ECR VPC Endpoints",
-            allow_all_outbound=False  # Endpoints don't need outbound
+            allow_all_outbound=False
         )
 
-        # Add ingress rule to ECR Endpoint SG from Lambda SG on all ports over VPC CIDR
+        # Add ingress rule to VPC Endpoint SG from Provider VPC CIDR
         vpc_endpoint_sg.add_ingress_rule(
-            peer=lambda_sg,
-            connection=ec2.Port.all_traffic(),
-            description="Allow all traffic from VPC CIDR (from Lambda)"
+            peer=ec2.Peer.ipv4("10.20.0.0/16"),
+            connection=ec2.Port.tcp(443),
+            description="Allow HTTPS from Provider VPC"
         )
+
+        ### EC2 INSTANCES ###
+        
+        # Get the latest Amazon Linux 2023 AMI
+        amzn_linux = ec2.MachineImage.latest_amazon_linux2023(
+            edition=ec2.AmazonLinuxEdition.STANDARD,
+            cpu_type=ec2.AmazonLinuxCpuType.X86_64
+        )
+        
+        # Create EC2 instances in Consumer Public Subnets
+        for i, subnet in enumerate(self.consumer_public_subnets):
+            ec2.CfnInstance(
+                self,
+                f"ConsumerPublicEC2Instance{i+1}",
+                instance_type="t2.micro",
+                image_id=amzn_linux.get_image(self).image_id,
+                key_name="demo",  # Make sure this key pair exists in your AWS account
+                subnet_id=subnet.ref,
+                security_group_ids=[consumer_ec2_sg.security_group_id],
+                tags=[{"key": "Name", "value": f"{consumer_app_prefix}-public-instance-{i+1}"}]
+            )
+        
+        # Create EC2 instances in Consumer Private Subnets
+        for i, subnet in enumerate(self.consumer_private_subnets):
+            ec2.CfnInstance(
+                self,
+                f"ConsumerPrivateEC2Instance{i+1}",
+                instance_type="t2.micro",
+                image_id=amzn_linux.get_image(self).image_id,
+                key_name="demo",  # Make sure this key pair exists in your AWS account
+                subnet_id=subnet.ref,
+                security_group_ids=[consumer_ec2_sg.security_group_id],
+                tags=[{"key": "Name", "value": f"{consumer_app_prefix}-private-instance-{i+1}"}]
+            )
+        
+        # Create EC2 instances in Provider Public Subnets
+        for i, subnet in enumerate(self.provider_public_subnets):
+            ec2.CfnInstance(
+                self,
+                f"ProviderPublicEC2Instance{i+1}",
+                instance_type="t2.micro",
+                image_id=amzn_linux.get_image(self).image_id,
+                key_name="demo",  # Make sure this key pair exists in your AWS account
+                subnet_id=subnet.ref,
+                security_group_ids=[provider_ec2_sg.security_group_id],
+                tags=[{"key": "Name", "value": f"{provider_app_prefix}-public-instance-{i+1}"}]
+            )
+        
+        # Create EC2 instances in Provider Private Subnets
+        for i, subnet in enumerate(self.provider_private_subnets):
+            ec2.CfnInstance(
+                self,
+                f"ProviderPrivateEC2Instance{i+1}",
+                instance_type="t2.micro",
+                image_id=amzn_linux.get_image(self).image_id,
+                key_name="demo",  # Make sure this key pair exists in your AWS account
+                subnet_id=subnet.ref,
+                security_group_ids=[provider_ec2_sg.security_group_id],
+                tags=[{"key": "Name", "value": f"{provider_app_prefix}-private-instance-{i+1}"}]
+            )
