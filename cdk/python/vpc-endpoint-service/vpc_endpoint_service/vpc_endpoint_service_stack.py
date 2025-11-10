@@ -205,6 +205,32 @@ class VpcEndpointServiceStack(Stack):
             vpc_id=self.provider_vpc.vpc_id,
             tags=[{"key": "Name", "value": f"{provider_app_prefix}-private-rt"}]
         )
+
+        # Create EIP for NAT Gateway first
+        self.nat_eip = ec2.CfnEIP(
+            self,
+            "NATGatewayEIP",
+            domain="vpc",
+            tags=[{"key": "Name", "value": f"{provider_app_prefix}-nat-eip"}]
+        )
+        
+        # Create NAT Gateway (in first public subnet)
+        self.nat_gateway = ec2.CfnNatGateway(
+            self,
+            "NATGateway",
+            subnet_id=self.provider_public_subnets[0].ref,  # Fixed: Use .ref instead of .attr_subnet_id
+            allocation_id=self.nat_eip.attr_allocation_id,
+            tags=[{"key": "Name", "value": f"{provider_app_prefix}-nat-gateway"}]
+        )
+
+        # Add route to NAT Gateway
+        ec2.CfnRoute(
+            self,
+            "PrivateRoute",
+            route_table_id=self.provider_private_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
+            destination_cidr_block="0.0.0.0/0",
+            nat_gateway_id=self.nat_gateway.ref  # Fixed: Use .ref instead of .attr_nat_gateway_id
+        )
         
         # Associate provider private subnets with private route table
         for i, subnet in enumerate(self.provider_private_subnets):
