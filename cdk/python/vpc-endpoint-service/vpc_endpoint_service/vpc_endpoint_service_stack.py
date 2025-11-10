@@ -4,7 +4,8 @@ from aws_cdk import (
     Stack,
     aws_iam as iam,
     aws_ec2 as ec2,
-    aws_lambda as _lambda
+    aws_lambda as _lambda,
+    aws_elasticloadbalancingv2 as elbv2
 )
 
 
@@ -205,32 +206,6 @@ class VpcEndpointServiceStack(Stack):
             vpc_id=self.provider_vpc.vpc_id,
             tags=[{"key": "Name", "value": f"{provider_app_prefix}-private-rt"}]
         )
-
-        # Create EIP for NAT Gateway first
-        self.nat_eip = ec2.CfnEIP(
-            self,
-            "NATGatewayEIP",
-            domain="vpc",
-            tags=[{"key": "Name", "value": f"{provider_app_prefix}-nat-eip"}]
-        )
-        
-        # Create NAT Gateway (in first public subnet)
-        self.nat_gateway = ec2.CfnNatGateway(
-            self,
-            "NATGateway",
-            subnet_id=self.provider_public_subnets[0].ref,  # Fixed: Use .ref instead of .attr_subnet_id
-            allocation_id=self.nat_eip.attr_allocation_id,
-            tags=[{"key": "Name", "value": f"{provider_app_prefix}-nat-gateway"}]
-        )
-
-        # Add route to NAT Gateway
-        ec2.CfnRoute(
-            self,
-            "PrivateRoute",
-            route_table_id=self.provider_private_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
-            destination_cidr_block="0.0.0.0/0",
-            nat_gateway_id=self.nat_gateway.ref  # Fixed: Use .ref instead of .attr_nat_gateway_id
-        )
         
         # Associate provider private subnets with private route table
         for i, subnet in enumerate(self.provider_private_subnets):
@@ -282,6 +257,13 @@ class VpcEndpointServiceStack(Stack):
             peer=ec2.Peer.any_ipv4(),
             connection=ec2.Port.tcp(22),
             description="Allow SSH from anywhere"
+        )
+        
+        # Allow HTTP from Provider VPC
+        provider_ec2_sg.add_ingress_rule(
+            peer=ec2.Peer.ipv4("10.20.0.0/16"),
+            connection=ec2.Port.tcp(80),
+            description="Allow HTTP from Provider VPC"
         )
         
         # Allow ICMP (ping)
@@ -356,14 +338,102 @@ class VpcEndpointServiceStack(Stack):
             )
         
         # Create EC2 instances in Provider Private Subnets
+        self.provider_private_instances = []
         for i, subnet in enumerate(self.provider_private_subnets):
-            ec2.CfnInstance(
+            # Create user data script to set up web server
+            user_data_script = ec2.UserData.for_linux()
+            user_data_script.add_commands(
+                "#!/bin/bash",
+                "yum update -y",
+                "yum install -y httpd",
+                "systemctl start httpd",
+                "systemctl enable httpd",
+                "cat <<EOF > /var/www/html/index.html",
+                "<!DOCTYPE html>",
+                "<html lang='en'>",
+                "<body>",
+                "    <div class='container'>",
+                "        <h1>🚀 Provider Service Demo</h1>",
+                "        <p>Welcome to the Provider Private EC2 Instance</p>",
+                "</body>",
+                "</html>",
+                "EOF",
+                "chmod 644 /var/www/html/index.html"
+            )
+            
+            instance = ec2.CfnInstance(
                 self,
                 f"ProviderPrivateEC2Instance{i+1}",
                 instance_type="t2.micro",
                 image_id=amzn_linux.get_image(self).image_id,
-                key_name="demo",  # Make sure this key pair exists in your AWS account
+                key_name="demo",
                 subnet_id=subnet.ref,
                 security_group_ids=[provider_ec2_sg.security_group_id],
+                user_data=user_data_script.render(),
                 tags=[{"key": "Name", "value": f"{provider_app_prefix}-private-instance-{i+1}"}]
             )
+            self.provider_private_instances.append(instance)
+
+        ### NETWORK LOAD BALANCER SETUP ###
+        
+        # Create Target Group for the NLB
+        self.target_group = elbv2.CfnTargetGroup(
+            self,
+            "ProviderTargetGroup",
+            name=f"{provider_app_prefix}-tg",
+            port=80,
+            protocol="TCP",
+            vpc_id=self.provider_vpc.vpc_id,
+            target_type="instance",
+            health_check_enabled=True,
+            health_check_protocol="TCP",
+            health_check_port="80",
+            health_check_interval_seconds=30,
+            healthy_threshold_count=3,
+            unhealthy_threshold_count=3,
+            tags=[{"key": "Name", "value": f"{provider_app_prefix}-target-group"}]
+        )
+        
+        # Register provider private EC2 instances to target group
+        for i, instance in enumerate(self.provider_private_instances):
+            elbv2.CfnTargetGroup.TargetDescriptionProperty(
+                id=instance.ref,
+                port=80
+            )
+            # Add dependency to ensure instance is created before registration
+            self.target_group.node.add_dependency(instance)
+        
+        # Register targets using CfnTargetGroup targets property
+        self.target_group.targets = [
+            elbv2.CfnTargetGroup.TargetDescriptionProperty(
+                id=instance.ref,
+                port=80
+            ) for instance in self.provider_private_instances
+        ]
+        
+        # Create Network Load Balancer in private subnets
+        self.nlb = elbv2.CfnLoadBalancer(
+            self,
+            "ProviderNLB",
+            name=f"{provider_app_prefix}-nlb",
+            type="network",
+            scheme="internal",
+            ip_address_type="ipv4",
+            subnets=[subnet.ref for subnet in self.provider_private_subnets],
+            tags=[{"key": "Name", "value": f"{provider_app_prefix}-nlb"}]
+        )
+        
+        # Create Listener for the NLB
+        self.nlb_listener = elbv2.CfnListener(
+            self,
+            "ProviderNLBListener",
+            load_balancer_arn=self.nlb.ref,
+            port=80,
+            protocol="TCP",
+            default_actions=[
+                elbv2.CfnListener.ActionProperty(
+                    type="forward",
+                    target_group_arn=self.target_group.ref
+                )
+            ]
+        )
