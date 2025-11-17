@@ -2,9 +2,12 @@ from constructs import Construct
 from aws_cdk import (
     Duration,
     Stack,
+    CfnOutput,
+    Fn,
     aws_iam as iam,
     aws_ec2 as ec2,
-    aws_lambda as _lambda
+    aws_lambda as _lambda,
+    aws_elasticloadbalancingv2 as elbv2
 )
 
 
@@ -205,32 +208,6 @@ class VpcEndpointServiceStack(Stack):
             vpc_id=self.provider_vpc.vpc_id,
             tags=[{"key": "Name", "value": f"{provider_app_prefix}-private-rt"}]
         )
-
-        # Create EIP for NAT Gateway first
-        self.nat_eip = ec2.CfnEIP(
-            self,
-            "NATGatewayEIP",
-            domain="vpc",
-            tags=[{"key": "Name", "value": f"{provider_app_prefix}-nat-eip"}]
-        )
-        
-        # Create NAT Gateway (in first public subnet)
-        self.nat_gateway = ec2.CfnNatGateway(
-            self,
-            "NATGateway",
-            subnet_id=self.provider_public_subnets[0].ref,  # Fixed: Use .ref instead of .attr_subnet_id
-            allocation_id=self.nat_eip.attr_allocation_id,
-            tags=[{"key": "Name", "value": f"{provider_app_prefix}-nat-gateway"}]
-        )
-
-        # Add route to NAT Gateway
-        ec2.CfnRoute(
-            self,
-            "PrivateRoute",
-            route_table_id=self.provider_private_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
-            destination_cidr_block="0.0.0.0/0",
-            nat_gateway_id=self.nat_gateway.ref  # Fixed: Use .ref instead of .attr_nat_gateway_id
-        )
         
         # Associate provider private subnets with private route table
         for i, subnet in enumerate(self.provider_private_subnets):
@@ -253,18 +230,10 @@ class VpcEndpointServiceStack(Stack):
             allow_all_outbound=True
         )
         
-        # Allow SSH from anywhere (you may want to restrict this to your IP)
         consumer_ec2_sg.add_ingress_rule(
             peer=ec2.Peer.any_ipv4(),
             connection=ec2.Port.tcp(22),
             description="Allow SSH from anywhere"
-        )
-        
-        # Allow ICMP (ping)
-        consumer_ec2_sg.add_ingress_rule(
-            peer=ec2.Peer.ipv4("10.10.0.0/16"),
-            connection=ec2.Port.all_icmp(),
-            description="Allow ICMP from Consumer VPC"
         )
         
         # Create Security Group for Provider EC2 instances
@@ -277,93 +246,146 @@ class VpcEndpointServiceStack(Stack):
             allow_all_outbound=True
         )
         
-        # Allow SSH from anywhere (you may want to restrict this to your IP)
         provider_ec2_sg.add_ingress_rule(
             peer=ec2.Peer.any_ipv4(),
             connection=ec2.Port.tcp(22),
             description="Allow SSH from anywhere"
         )
         
-        # Allow ICMP (ping)
         provider_ec2_sg.add_ingress_rule(
             peer=ec2.Peer.ipv4("10.20.0.0/16"),
-            connection=ec2.Port.all_icmp(),
-            description="Allow ICMP from Provider VPC"
-        )
-        
-        # Create Security Group for VPC Endpoints
-        vpc_endpoint_sg = ec2.SecurityGroup(
-            self,
-            "ECREndpointSecurityGroup",
-            vpc=self.provider_vpc,
-            security_group_name=f"{provider_app_prefix}-ecr-endpoint-sg",
-            description="Security group for ECR VPC Endpoints",
-            allow_all_outbound=False
-        )
-
-        # Add ingress rule to VPC Endpoint SG from Provider VPC CIDR
-        vpc_endpoint_sg.add_ingress_rule(
-            peer=ec2.Peer.ipv4("10.20.0.0/16"),
-            connection=ec2.Port.tcp(443),
-            description="Allow HTTPS from Provider VPC"
+            connection=ec2.Port.tcp(80),
+            description="Allow HTTP from Provider VPC"
         )
 
         ### EC2 INSTANCES ###
         
-        # Get the latest Amazon Linux 2023 AMI
         amzn_linux = ec2.MachineImage.latest_amazon_linux2023(
             edition=ec2.AmazonLinuxEdition.STANDARD,
             cpu_type=ec2.AmazonLinuxCpuType.X86_64
         )
         
-        # Create EC2 instances in Consumer Public Subnets
-        for i, subnet in enumerate(self.consumer_public_subnets):
-            ec2.CfnInstance(
-                self,
-                f"ConsumerPublicEC2Instance{i+1}",
-                instance_type="t2.micro",
-                image_id=amzn_linux.get_image(self).image_id,
-                key_name="demo",  # Make sure this key pair exists in your AWS account
-                subnet_id=subnet.ref,
-                security_group_ids=[consumer_ec2_sg.security_group_id],
-                tags=[{"key": "Name", "value": f"{consumer_app_prefix}-public-instance-{i+1}"}]
-            )
+        # Consumer instances (one public, one private)
+        ec2.CfnInstance(
+            self,
+            "ConsumerPublicInstance",
+            instance_type="t2.micro",
+            image_id=amzn_linux.get_image(self).image_id,
+            key_name="demo",
+            subnet_id=self.consumer_public_subnets[0].ref,
+            security_group_ids=[consumer_ec2_sg.security_group_id],
+            tags=[{"key": "Name", "value": f"{consumer_app_prefix}-public-instance"}]
+        )
         
-        # Create EC2 instances in Consumer Private Subnets
-        for i, subnet in enumerate(self.consumer_private_subnets):
-            ec2.CfnInstance(
-                self,
-                f"ConsumerPrivateEC2Instance{i+1}",
-                instance_type="t2.micro",
-                image_id=amzn_linux.get_image(self).image_id,
-                key_name="demo",  # Make sure this key pair exists in your AWS account
-                subnet_id=subnet.ref,
-                security_group_ids=[consumer_ec2_sg.security_group_id],
-                tags=[{"key": "Name", "value": f"{consumer_app_prefix}-private-instance-{i+1}"}]
-            )
+        ec2.CfnInstance(
+            self,
+            "ConsumerPrivateInstance",
+            instance_type="t2.micro",
+            image_id=amzn_linux.get_image(self).image_id,
+            key_name="demo",
+            subnet_id=self.consumer_private_subnets[0].ref,
+            security_group_ids=[consumer_ec2_sg.security_group_id],
+            tags=[{"key": "Name", "value": f"{consumer_app_prefix}-private-instance"}]
+        )
         
-        # Create EC2 instances in Provider Public Subnets
-        for i, subnet in enumerate(self.provider_public_subnets):
-            ec2.CfnInstance(
-                self,
-                f"ProviderPublicEC2Instance{i+1}",
-                instance_type="t2.micro",
-                image_id=amzn_linux.get_image(self).image_id,
-                key_name="demo",  # Make sure this key pair exists in your AWS account
-                subnet_id=subnet.ref,
-                security_group_ids=[provider_ec2_sg.security_group_id],
-                tags=[{"key": "Name", "value": f"{provider_app_prefix}-public-instance-{i+1}"}]
-            )
+        # Provider instances (one public, one private with web server)
+        ec2.CfnInstance(
+            self,
+            "ProviderPublicInstance",
+            instance_type="t2.micro",
+            image_id=amzn_linux.get_image(self).image_id,
+            key_name="demo",
+            subnet_id=self.provider_public_subnets[0].ref,
+            security_group_ids=[provider_ec2_sg.security_group_id],
+            tags=[{"key": "Name", "value": f"{provider_app_prefix}-public-instance"}]
+        )
         
-        # Create EC2 instances in Provider Private Subnets
-        for i, subnet in enumerate(self.provider_private_subnets):
-            ec2.CfnInstance(
-                self,
-                f"ProviderPrivateEC2Instance{i+1}",
-                instance_type="t2.micro",
-                image_id=amzn_linux.get_image(self).image_id,
-                key_name="demo",  # Make sure this key pair exists in your AWS account
-                subnet_id=subnet.ref,
-                security_group_ids=[provider_ec2_sg.security_group_id],
-                tags=[{"key": "Name", "value": f"{provider_app_prefix}-private-instance-{i+1}"}]
-            )
+        provider_private_instance = ec2.CfnInstance(
+            self,
+            "ProviderPrivateInstance",
+            instance_type="t2.micro",
+            image_id=amzn_linux.get_image(self).image_id,
+            key_name="demo",
+            subnet_id=self.provider_private_subnets[0].ref,
+            security_group_ids=[provider_ec2_sg.security_group_id],
+            tags=[{"key": "Name", "value": f"{provider_app_prefix}-private-instance"}]
+        )
+
+        ### NETWORK LOAD BALANCER SETUP ###
+        
+        target_group = elbv2.CfnTargetGroup(
+            self,
+            "ProviderTargetGroup",
+            name=f"{provider_app_prefix}-tg",
+            port=80,
+            protocol="TCP",
+            vpc_id=self.provider_vpc.vpc_id,
+            target_type="instance",
+            health_check_enabled=True,
+            health_check_protocol="TCP",
+            targets=[
+                elbv2.CfnTargetGroup.TargetDescriptionProperty(
+                    id=provider_private_instance.ref,
+                    port=80
+                )
+            ]
+        )
+        
+        nlb = elbv2.CfnLoadBalancer(
+            self,
+            "ProviderNLB",
+            name=f"{provider_app_prefix}-nlb",
+            type="network",
+            scheme="internal",
+            subnets=[self.provider_private_subnets[0].ref]
+        )
+        
+        elbv2.CfnListener(
+            self,
+            "ProviderNLBListener",
+            load_balancer_arn=nlb.ref,
+            port=80,
+            protocol="TCP",
+            default_actions=[
+                elbv2.CfnListener.ActionProperty(
+                    type="forward",
+                    target_group_arn=target_group.ref
+                )
+            ]
+        )
+
+        ### VPC ENDPOINT SERVICE ###
+        
+        vpc_endpoint_service = ec2.CfnVPCEndpointService(
+            self,
+            "ProviderVpcEndpointService",
+            network_load_balancer_arns=[nlb.ref],
+            acceptance_required=False
+        )
+        
+        vpc_endpoint = ec2.CfnVPCEndpoint(
+            self,
+            "ConsumerVpcEndpoint",
+            vpc_id=self.consumer_vpc.vpc_id,
+            service_name="com.amazonaws.vpce.us-east-1.vpce-svc-02bbd52300b2abe93",
+            vpc_endpoint_type="Interface",
+            subnet_ids=[self.consumer_private_subnets[0].ref],
+            security_group_ids=[consumer_ec2_sg.security_group_id],
+            private_dns_enabled=False
+        )
+
+        ### OUTPUTS ###
+        
+        CfnOutput(
+            self,
+            "VpcEndpointServiceName",
+            value=Fn.get_att(vpc_endpoint_service.logical_id, "ServiceId").to_string(),
+            description="VPC Endpoint Service Name"
+        )
+        
+        CfnOutput(
+            self,
+            "NLBDnsName",
+            value=nlb.attr_dns_name,
+            description="Network Load Balancer DNS Name"
+        )
