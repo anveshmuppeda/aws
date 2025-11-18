@@ -192,7 +192,7 @@ class VpcFlowLogsStack(Stack):
             instance_type="t2.micro",
             image_id=amzn_linux.get_image(self).image_id,
             key_name="demo",
-            subnet_id=self.Public_public_subnets[0].ref,
+            subnet_id=self.public_subnets[0].ref,
             security_group_ids=[public_ec2_sg.security_group_id],
             tags=[{"key": "Name", "value": f"{app_prefix}-public-instance"}]
         )
@@ -203,7 +203,7 @@ class VpcFlowLogsStack(Stack):
             instance_type="t2.micro",
             image_id=amzn_linux.get_image(self).image_id,
             key_name="demo",
-            subnet_id=self.Public_private_subnets[0].ref,
+            subnet_id=self.private_subnets[0].ref,
             security_group_ids=[private_ec2_sg.security_group_id],
             tags=[{"key": "Name", "value": f"{app_prefix}-private-instance"}]
         )
