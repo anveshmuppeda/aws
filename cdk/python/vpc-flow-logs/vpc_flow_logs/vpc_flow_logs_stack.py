@@ -2,6 +2,9 @@ from constructs import Construct
 from aws_cdk import (
     Stack,
     aws_ec2 as ec2,
+    aws_iam as iam,
+    aws_logs as logs,
+    RemovalPolicy
 )
 
 
@@ -23,6 +26,56 @@ class VpcFlowLogsStack(Stack):
             # Create VPC without subnets
             subnet_configuration=[]
         )
+
+        ### VPC FLOW LOGS SETUP ###
+        
+        # Create CloudWatch Log Group for VPC Flow Logs
+        flow_logs_log_group = logs.LogGroup(
+            self,
+            "VPCFlowLogsLogGroup",
+            log_group_name=f"/aws/vpc/flowlogs/{app_prefix}",
+            retention=logs.RetentionDays.ONE_WEEK,  # Adjust retention as needed
+            removal_policy=RemovalPolicy.DESTROY  # For demo purposes; use RETAIN in production
+        )
+        
+        # Create IAM Role for VPC Flow Logs
+        flow_logs_role = iam.Role(
+            self,
+            "VPCFlowLogsRole",
+            assumed_by=iam.ServicePrincipal("vpc-flow-logs.amazonaws.com"),
+            description="Role for VPC Flow Logs to write to CloudWatch"
+        )
+        
+        # Attach policy to allow writing to CloudWatch Logs
+        flow_logs_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "logs:DescribeLogGroups",
+                    "logs:DescribeLogStreams"
+                ],
+                resources=[flow_logs_log_group.log_group_arn]
+            )
+        )
+        
+        # Enable VPC Flow Logs
+        ec2.CfnFlowLog(
+            self,
+            "VPCFlowLog",
+            resource_type="VPC",
+            resource_id=self.demo_vpc.vpc_id,
+            traffic_type="ALL",  # Options: ACCEPT, REJECT, or ALL
+            log_destination_type="cloud-watch-logs",
+            log_destination=flow_logs_log_group.log_group_arn,
+            deliver_logs_permission_arn=flow_logs_role.role_arn,
+            # Optional: Custom log format (default format shown below)
+            # log_format="${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}",
+            tags=[{"key": "Name", "value": f"{app_prefix}-flow-log"}]
+        )
+        
+        ### END VPC FLOW LOGS SETUP ###
         
         # Create Internet Gateway
         self.igw = ec2.CfnInternetGateway(
@@ -36,7 +89,7 @@ class VpcFlowLogsStack(Stack):
             self,
             "IGWAttachment",
             vpc_id=self.demo_vpc.vpc_id,
-            internet_gateway_id=self.igw.ref  # Fixed: Use .ref instead of .attr_internet_gateway_id
+            internet_gateway_id=self.igw.ref
         )
 
         # Get availability zones (first 1)
@@ -95,21 +148,23 @@ class VpcFlowLogsStack(Stack):
             vpc_id=self.demo_vpc.vpc_id,
             tags=[{"key": "Name", "value": f"{app_prefix}-public-rt"}]
         )
+        
         # Add route to Internet Gateway
         ec2.CfnRoute(
             self,
             "PublicRoute",
-            route_table_id=self.public_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
+            route_table_id=self.public_route_table.ref,
             destination_cidr_block="0.0.0.0/0",
-            gateway_id=self.igw.ref  # Fixed: Use .ref instead of .attr_internet_gateway_id
+            gateway_id=self.igw.ref
         )
+        
         # Associate public subnets with public route table
         for i, subnet in enumerate(self.public_subnets):
             ec2.CfnSubnetRouteTableAssociation(
                 self,
                 f"PublicSubnetRTAssoc{i+1}",
-                subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
-                route_table_id=self.public_route_table.ref  # Fixed: Use .ref instead of .attr_route_table_id
+                subnet_id=subnet.ref,
+                route_table_id=self.public_route_table.ref
             )
         
         # Private Route Table
@@ -120,22 +175,13 @@ class VpcFlowLogsStack(Stack):
             tags=[{"key": "Name", "value": f"{app_prefix}-private-rt"}]
         )
         
-        # Add route to NAT Gateway
-        # ec2.CfnRoute(
-        #     self,
-        #     "PrivateRoute",
-        #     route_table_id=self.private_route_table.ref,  # Fixed: Use .ref instead of .attr_route_table_id
-        #     destination_cidr_block="0.0.0.0/0",
-        #     nat_gateway_id=self.nat_gateway.ref  # Fixed: Use .ref instead of .attr_nat_gateway_id
-        # )
-        
         # Associate private subnets with private route table
         for i, subnet in enumerate(self.private_subnets):
             ec2.CfnSubnetRouteTableAssociation(
                 self,
                 f"PrivateSubnetRTAssoc{i+1}",
-                subnet_id=subnet.ref,  # Fixed: Use .ref instead of .attr_subnet_id
-                route_table_id=self.private_route_table.ref  # Fixed: Use .ref instead of .attr_route_table_id
+                subnet_id=subnet.ref,
+                route_table_id=self.private_route_table.ref
             )
         
         ### SECURITY GROUPS ###
