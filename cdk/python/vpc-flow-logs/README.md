@@ -1,4 +1,5 @@
 # Hands-On Guide: Implementing VPC Flow Logs with AWS CDK (Python)
+*Logging IP traffic using VPC Flow Logs and CloudWatch Logs*
 
 ## Introduction
 
