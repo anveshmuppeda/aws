@@ -61,7 +61,7 @@
 ---
 # AWS Hands-On Labs Repository
 
-Welcome to the AWS Hands-On Labs Repository – a one-stop resource for learning, exploring, and mastering AWS services through practical, step-by-step labs and CloudFormation guides. This repository is built to serve everyone—from beginners to seasoned professionals—by providing clear, easy-to-follow examples that cover a wide range of AWS services and infrastructure-as-code tools.
+Welcome to the AWS Hands-On Labs Repository – a one-stop resource for learning, exploring, and mastering AWS services through practical, step-by-step labs and CloudFormation guides. This repository is built to serve everyone—from beginners to seasoned professionals—by providing clear, easy-to-follow examples that cover a wide range of AWS services and infrastructure-as-code tools.  
 
 ## Table of Contents
 
